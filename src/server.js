@@ -1,16 +1,24 @@
-const express = require("express");
+import express from "express";
+import { getToken, validateToken } from "@navikt/oasis";
 const app = express();
 
 // Redirect må komme FØR static middleware
-app.get("/", (req, res) => {
-  res.redirect(`/feilmelding`);
+app.get("/", async (req, res) => {
+  const token = getToken(req);
+  if (!token) {
+    res.redirect(`/feilmelding`);
+  }
+  const validation = await validateToken(token);
+  if (!validation.ok) {
+    res.redirect(`/feilmelding`);
+  }
+  res.redirect(`/success`);
 });
 
 // Mount static files på /feilmelding path
-app.use("/feilmelding", express.static("feilmelding"));
+app.use("/feilmelding", express.static("dist/feilmelding"));
 
-// Eksporter app for testing
-module.exports = app;
+app.use("/success", express.static("dist/success"));
 
 // Start serveren bare hvis filen kjøres direkte (ikke under test)
 if (require.main === module) {
@@ -18,3 +26,6 @@ if (require.main === module) {
   app.listen(PORT);
   console.log(`Server is running on port ${PORT}`);
 }
+
+// Eksporter app for testing
+export default app;
