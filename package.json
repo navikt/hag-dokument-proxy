@@ -3,12 +3,14 @@
     "express": "^5.2.1"
   },
   "scripts": {
-    "start": "node server.js",
+    "start": "node src/server.js",
     "prepare": "husky",
-    "test": "echo \"Error: ingen tester kjørt. TODO: bytt til ekte tester senere\" && exit 0"
+    "test": "vitest"
   },
   "packageManager": "pnpm@10.30.3+sha512.c961d1e0a2d8e354ecaa5166b822516668b7f44cb5bd95122d590dd81922f606f5473b6d23ec4a5be05e7fcd18e8488d47d978bbe981872f1145d06e9a740017",
   "devDependencies": {
-    "husky": "^9.1.7"
+    "husky": "^9.1.7",
+    "supertest": "^7.2.2",
+    "vitest": "^4.0.18"
   }
 }
