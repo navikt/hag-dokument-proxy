@@ -11,6 +11,8 @@ spec:
     enabled: true
     sidecar:
       enabled: true
+  tokenx:
+    enabled: true
   ingresses:
     - https://hag-dokument-proxy.ekstern.dev.nav.no
   replicas:
