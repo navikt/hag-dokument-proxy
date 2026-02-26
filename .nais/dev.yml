@@ -7,6 +7,10 @@ metadata:
     team: helsearbeidsgiver
 spec:
   image: {{ image }}
+  idporten:
+    enabled: true
+    sidecar:
+      enabled: true
   ingresses:
     - https://hag-dokument-proxy.ekstern.dev.nav.no
   replicas:
