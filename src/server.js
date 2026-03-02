@@ -1,5 +1,6 @@
 import express from "express";
 import { getToken, validateToken } from "@navikt/oasis";
+import { fileURLToPath } from "url";
 const app = express();
 
 // Redirect må komme FØR static middleware
@@ -21,7 +22,10 @@ app.use("/feilmelding", express.static("dist/feilmelding"));
 app.use("/success", express.static("dist/success"));
 
 // Start serveren bare hvis filen kjøres direkte (ikke under test)
-if (require.main === module) {
+const isDirectRun =
+  process.argv[1] && fileURLToPath(import.meta.url) === process.argv[1];
+
+if (isDirectRun) {
   const PORT = process.env.PORT || 3000;
   app.listen(PORT);
   console.log(`Server is running on port ${PORT}`);
