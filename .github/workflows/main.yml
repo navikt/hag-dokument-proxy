@@ -12,12 +12,20 @@ jobs:
       id-token: write
     steps:
       - uses: actions/checkout@v6
+      - uses: actions/setup-node@6044e13b5dc448c55e2357c09f80417699197238
+        with:
+          node-version: "24.0"
+          registry-url: "https://npm.pkg.github.com"
+      - name: Setup pnpm
+        uses: pnpm/action-setup@41ff72655975bd51cab0327fa583b6e92b6d3061
+      - name: Install dependencies
+        run: pnpm install --frozen-lockfile  --ignore-scripts
       - name: Build and push image and SBOM to OCI registry
         if: steps.changed-files.outputs.changed != 'only-inputs'
         uses: nais/docker-build-push@v0
         id: docker-build-push
         with:
-          team: helsearbeidsgiver 
+          team: helsearbeidsgiver
       - name: Deploy to Nais
         uses: nais/deploy/actions/deploy@v2
         env:
