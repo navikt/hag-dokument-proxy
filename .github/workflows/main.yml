@@ -3,6 +3,8 @@ on:
   push:
     branches:
       - main
+env:
+  NPM_AUTH_TOKEN: ${{ secrets.READER_TOKEN }}
 jobs:
   build_and_deploy:
     name: Build, push and deploy
