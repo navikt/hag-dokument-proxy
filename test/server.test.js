@@ -1,12 +1,17 @@
 import { describe, it, expect, afterAll, vi } from "vitest";
 import request from "supertest";
 import app from "../src/server.js";
-import { validateToken } from "@navikt/oasis";
+import { validateToken, requestOboToken } from "@navikt/oasis";
 
 vi.mock("@navikt/oasis", () => ({
   getToken: vi.fn(() => "mock-token"),
   validateToken: vi.fn(() => Promise.resolve({ ok: true })),
+  requestOboToken: vi.fn(() =>
+    Promise.resolve({ ok: true, token: "obo-token" }),
+  ),
 }));
+
+const PDF_PATH = "/hent-dokument/sykmelding/abc123.pdf";
 
 describe("Server", () => {
   let server;
@@ -15,19 +20,42 @@ describe("Server", () => {
     if (server) server.close();
   });
 
-  it("skal redirecte rot-path til /success", async () => {
-    const response = await request(app).get("/").expect(302);
-    expect(response.headers.location).toBe("/success");
+  it("skal returnere PDF ved gyldig forespørsel", async () => {
+    vi.stubGlobal(
+      "fetch",
+      vi.fn(() =>
+        Promise.resolve({
+          ok: true,
+          status: 200,
+          arrayBuffer: () => Promise.resolve(new ArrayBuffer(8)),
+        }),
+      ),
+    );
+    const response = await request(app).get(PDF_PATH).expect(200);
+    expect(response.headers["content-type"]).toContain("application/pdf");
+    vi.unstubAllGlobals();
   });
 
-  it("skal redirecte rot-path til /feilmelding når token er ugyldig", async () => {
+  it("skal redirecte til /feilmelding når token er ugyldig", async () => {
     vi.mocked(validateToken).mockResolvedValueOnce({ ok: false });
-    const response = await request(app).get("/").expect(302);
+    const response = await request(app).get(PDF_PATH).expect(302);
+    expect(response.headers.location).toBe("/feilmelding");
+  });
+
+  it("skal redirecte til /feilmelding når dokumentType er ugyldig", async () => {
+    const response = await request(app)
+      .get("/hent-dokument/ugyldig/abc123.pdf")
+      .expect(302);
+    expect(response.headers.location).toBe("/feilmelding");
+  });
+
+  it("skal redirecte til /feilmelding når OBO-token feiler", async () => {
+    vi.mocked(requestOboToken).mockResolvedValueOnce({ ok: false });
+    const response = await request(app).get(PDF_PATH).expect(302);
     expect(response.headers.location).toBe("/feilmelding");
   });
 
   it("skal servere statiske filer fra feilmelding-mappen", async () => {
-    // Test at en fil kan serveres fra /feilmelding
     const response = await request(app).get("/feilmelding/index.html");
     expect(response.status).not.toBe(404);
   });

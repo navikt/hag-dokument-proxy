@@ -1,5 +1,5 @@
 import express from "express";
-import { getToken, validateToken } from "@navikt/oasis";
+import { getToken, validateToken, requestOboToken } from "@navikt/oasis";
 import { fileURLToPath } from "node:url";
 import {
   buildCspHeader,
@@ -8,8 +8,23 @@ import {
 
 const app = express();
 
+const API_BASEPATH = process.env.API_BASEPATH || "";
+const AUDIENCE = "dev-gcp.helsearbeidsgiver.sykepenger-im-lps-api";
+const GYLDIG_TYPE = new Set(["sykmelding", "soknad"]);
+
 // Redirect må komme FØR static middleware
-app.get("/", async (req, res) => {
+app.get("/hent-dokument/:dokumentType/:dokumentId.pdf", async (req, res) => {
+  const dokumentId = req.params.dokumentId;
+  const dokumentType = req.params.dokumentType;
+
+  if (!GYLDIG_TYPE.has(dokumentType)) {
+    return res.redirect(`/feilmelding`);
+  }
+
+  if (!dokumentId) {
+    return res.redirect(`/feilmelding`);
+  }
+
   const token = getToken(req);
   if (!token) {
     return res.redirect(`/feilmelding`);
@@ -18,13 +33,52 @@ app.get("/", async (req, res) => {
   if (!validation.ok) {
     return res.redirect(`/feilmelding`);
   }
-  res.redirect(`/success`);
+
+  const obo = await requestOboToken(token, AUDIENCE);
+  if (!obo.ok) {
+    /* håndter obo-feil */
+    // eslint-disable-next-line no-undef
+    return res.redirect(`/feilmelding`);
+  }
+
+  // eslint-disable-next-line no-undef
+  const data = await fetch(
+    `${API_BASEPATH}/${dokumentType}/${dokumentId}/pdf`,
+    {
+      method: "GET",
+      headers: {
+        "Content-Type": "application/pdf",
+        Authorization: `Bearer ${obo.token}`,
+      },
+    },
+  );
+
+  if (!data.ok) {
+    /* håndter feil ved henting av dokument */
+    // eslint-disable-next-line no-undef
+    return res.redirect(`/feilmelding`);
+  }
+
+  res.contentType("application/pdf");
+  res.setHeader(
+    "Content-Disposition",
+    `attachment; filename="${dokumentType}-${dokumentId}.pdf"`,
+  );
+  const arrayBuffer = await data.arrayBuffer();
+  const buffer = Buffer.from(arrayBuffer);
+
+  res.status(data.status);
+  res.send(buffer);
 });
 
 // Mount static files på /feilmelding path
-app.use("/feilmelding", function (req, res) {
+app.use("/feilmelding", function (_req, res) {
+  const env =
+    process.env.NEXT_PUBLIC_DECORATOR_ENV ??
+    (process.env.NAIS_CLUSTER_NAME === "prod-gcp" ? "prod" : "dev");
+
   injectDecoratorServerSide({
-    env: "prod",
+    env,
     filePath: "dist/feilmelding/index.html",
     params: { context: "arbeidsgiver" },
   })
@@ -32,7 +86,7 @@ app.use("/feilmelding", function (req, res) {
       const csp = buildCspHeader(
         {},
         {
-          env: "prod",
+          env,
           params: { context: "arbeidsgiver" },
         },
       );
