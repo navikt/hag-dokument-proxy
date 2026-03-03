@@ -35,3 +35,6 @@ spec:
     logging:
       destinations:
         - id: loki
+  environment:
+      AUDIENCE: 'dev-gcp:helsearbeidsgiver:sykepenger-im-lps-api'
+      API_BASEPATH: 'http://sykepenger-im-lps-api/intern/personbruker/'
