@@ -36,5 +36,7 @@ spec:
       destinations:
         - id: loki
   env:
-      AUDIENCE: 'dev-gcp:helsearbeidsgiver:sykepenger-im-lps-api'
-      API_BASEPATH: 'http://sykepenger-im-lps-api/intern/personbruker/'
+      - name: AUDIENCE
+        value: 'dev-gcp:helsearbeidsgiver:sykepenger-im-lps-api'
+      - name: API_BASEPATH
+        value: 'http://sykepenger-im-lps-api/intern/personbruker/'
