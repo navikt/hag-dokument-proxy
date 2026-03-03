@@ -23,6 +23,8 @@ spec:
       rules:
         - application: nav-dekoratoren
           namespace: personbruker
+        - application: sykepenger-im-lps-api
+          namespace: helsearbeidsgiver
   resources:
     limits:
       memory: 256Mi
