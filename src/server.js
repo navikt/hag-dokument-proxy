@@ -38,7 +38,7 @@ app.get("/hent-dokument/:dokumentType/:dokumentId.pdf", async (req, res) => {
 
   const obo = await requestOboToken(token, AUDIENCE);
   if (!obo.ok) {
-    logger.error("Feil ved henting av OBO-token");
+    logger.error("Feil ved henting av OBO-token med audience " + AUDIENCE);
     return res.redirect(`/feilmelding`);
   }
 
