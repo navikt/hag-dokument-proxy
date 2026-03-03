@@ -9,7 +9,7 @@ import {
 const app = express();
 
 const API_BASEPATH = process.env.API_BASEPATH || "";
-const AUDIENCE = "dev-gcp.helsearbeidsgiver.sykepenger-im-lps-api";
+const AUDIENCE = process.env.AUDIENCE || "";
 const GYLDIG_TYPE = new Set(["sykmelding", "soknad"]);
 
 // Redirect må komme FØR static middleware
