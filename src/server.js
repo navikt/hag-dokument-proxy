@@ -5,6 +5,7 @@ import {
   buildCspHeader,
   injectDecoratorServerSide,
 } from "@navikt/nav-dekoratoren-moduler/ssr/index.js";
+import { logger } from "@navikt/pino-logger";
 
 const app = express();
 
@@ -31,13 +32,13 @@ app.get("/hent-dokument/:dokumentType/:dokumentId.pdf", async (req, res) => {
   }
   const validation = await validateToken(token);
   if (!validation.ok) {
+    logger.error("Ugyldig token");
     return res.redirect(`/feilmelding`);
   }
 
   const obo = await requestOboToken(token, AUDIENCE);
   if (!obo.ok) {
-    /* håndter obo-feil */
-    // eslint-disable-next-line no-undef
+    logger.error("Feil ved henting av OBO-token");
     return res.redirect(`/feilmelding`);
   }
 
@@ -56,7 +57,7 @@ app.get("/hent-dokument/:dokumentType/:dokumentId.pdf", async (req, res) => {
   if (!data.ok) {
     /* håndter feil ved henting av dokument */
     // eslint-disable-next-line no-undef
-    console.error(
+    logger.error(
       `Feil ved henting av dokument: ${data.status} ${data.statusText}`,
     );
     return res.redirect(`/feilmelding`);
@@ -70,8 +71,8 @@ app.get("/hent-dokument/:dokumentType/:dokumentId.pdf", async (req, res) => {
   const arrayBuffer = await data.arrayBuffer();
   const buffer = Buffer.from(arrayBuffer);
 
-  console.log(`Serverer dokument ${dokumentType}-${dokumentId}.pdf`);
-  console.log(`Dokumentstørrelse: ${buffer.length} bytes`);
+  logger.info(`Serverer dokument ${dokumentType}-${dokumentId}.pdf`);
+  logger.info(`Dokumentstørrelse: ${buffer.length} bytes`);
 
   res.status(data.status);
   res.send(buffer);
@@ -101,7 +102,7 @@ app.use("/feilmelding", function (_req, res) {
     })
     .catch((error) => {
       // eslint-disable-next-line no-undef
-      console.error("Server: SSR error", error);
+      logger.error("Server: SSR error", error);
       res.status(500).send("500 Error");
     });
 });
@@ -115,7 +116,7 @@ const isDirectRun =
 if (isDirectRun) {
   const PORT = process.env.PORT || 3000;
   app.listen(PORT);
-  console.log(`Server is running on port ${PORT}`);
+  logger.info(`Server is running on port ${PORT}`);
 }
 
 // Eksporter app for testing
