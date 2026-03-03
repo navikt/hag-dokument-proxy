@@ -56,6 +56,9 @@ app.get("/hent-dokument/:dokumentType/:dokumentId.pdf", async (req, res) => {
   if (!data.ok) {
     /* håndter feil ved henting av dokument */
     // eslint-disable-next-line no-undef
+    console.error(
+      `Feil ved henting av dokument: ${data.status} ${data.statusText}`,
+    );
     return res.redirect(`/feilmelding`);
   }
 
@@ -66,6 +69,9 @@ app.get("/hent-dokument/:dokumentType/:dokumentId.pdf", async (req, res) => {
   );
   const arrayBuffer = await data.arrayBuffer();
   const buffer = Buffer.from(arrayBuffer);
+
+  console.log(`Serverer dokument ${dokumentType}-${dokumentId}.pdf`);
+  console.log(`Dokumentstørrelse: ${buffer.length} bytes`);
 
   res.status(data.status);
   res.send(buffer);
