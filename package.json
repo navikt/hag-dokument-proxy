@@ -3,7 +3,8 @@
     "@navikt/nav-dekoratoren-moduler": "^3.6.2",
     "@navikt/oasis": "^4.1.4",
     "@navikt/pino-logger": "^4.5.1",
-    "express": "^5.2.1"
+    "express": "^5.2.1",
+    "uuid": "^13.0.0"
   },
   "scripts": {
     "start": "node src/server.js",

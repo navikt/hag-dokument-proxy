@@ -11,7 +11,8 @@ vi.mock("@navikt/oasis", () => ({
   ),
 }));
 
-const PDF_PATH = "/hent-dokument/sykmelding/abc123.pdf";
+const PDF_PATH =
+  "/hent-dokument/sykmelding/550e8400-e29b-41d4-a716-446655440000.pdf";
 
 describe("Server", () => {
   let server;
@@ -42,11 +43,11 @@ describe("Server", () => {
     expect(response.headers.location).toBe("/feilmelding");
   });
 
-  it("skal redirecte til /feilmelding når dokumentType er ugyldig", async () => {
+  it("skal redirecte til /ugyldig når dokumentType er ugyldig", async () => {
     const response = await request(app)
-      .get("/hent-dokument/ugyldig/abc123.pdf")
+      .get("/hent-dokument/ugyldig/550e8400-e29b-41d4-a716-446655440000.pdf")
       .expect(302);
-    expect(response.headers.location).toBe("/feilmelding");
+    expect(response.headers.location).toBe("/ugyldig");
   });
 
   it("skal redirecte til /feilmelding når OBO-token feiler", async () => {

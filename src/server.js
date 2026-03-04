@@ -6,6 +6,7 @@ import {
   injectDecoratorServerSide,
 } from "@navikt/nav-dekoratoren-moduler/ssr/index.js";
 import { logger } from "@navikt/pino-logger";
+import { validate } from "uuid";
 
 const app = express();
 
@@ -19,11 +20,11 @@ app.get("/hent-dokument/:dokumentType/:dokumentId.pdf", async (req, res) => {
   const dokumentType = req.params.dokumentType;
 
   if (!GYLDIG_TYPE.has(dokumentType)) {
-    return res.redirect(`/feilmelding`);
+    return res.redirect(`/ugyldig`);
   }
 
-  if (!dokumentId) {
-    return res.redirect(`/feilmelding`);
+  if (!dokumentId || !validate(dokumentId)) {
+    return res.redirect(`/ugyldig`);
   }
 
   const token = getToken(req);
@@ -60,6 +61,12 @@ app.get("/hent-dokument/:dokumentType/:dokumentId.pdf", async (req, res) => {
     logger.error(
       `Feil ved henting av dokument: ${data.status} ${data.statusText}`,
     );
+    if (data.status === 404) {
+      return res.redirect(`/404`);
+    }
+    if (data.status === 403) {
+      return res.redirect(`/403`);
+    }
     return res.redirect(`/feilmelding`);
   }
 
@@ -77,6 +84,8 @@ app.get("/hent-dokument/:dokumentType/:dokumentId.pdf", async (req, res) => {
   res.status(data.status);
   res.send(buffer);
 });
+
+app.use("/assets", express.static("dist/assets"));
 
 // Mount static files på /feilmelding path
 app.use("/feilmelding", function (_req, res) {
@@ -107,7 +116,153 @@ app.use("/feilmelding", function (_req, res) {
     });
 });
 
-app.use("/success", express.static("dist/success"));
+app.use("/404", function (_req, res) {
+  const env =
+    process.env.NEXT_PUBLIC_DECORATOR_ENV ??
+    (process.env.NAIS_CLUSTER_NAME === "prod-gcp" ? "prod" : "dev");
+
+  injectDecoratorServerSide({
+    env,
+    filePath: "dist/404/index.html",
+    params: { context: "arbeidsgiver" },
+  })
+    .then((html) => {
+      const csp = buildCspHeader(
+        {},
+        {
+          env,
+          params: { context: "arbeidsgiver" },
+        },
+      );
+      res.setHeader("Content-Security-Policy", csp);
+      res.status(404);
+      res.send(html);
+    })
+    .catch((error) => {
+      // eslint-disable-next-line no-undef
+      logger.error("Server: SSR error", error);
+      res.status(500).send("500 Error");
+    });
+});
+
+app.use("/403", function (_req, res) {
+  const env =
+    process.env.NEXT_PUBLIC_DECORATOR_ENV ??
+    (process.env.NAIS_CLUSTER_NAME === "prod-gcp" ? "prod" : "dev");
+
+  injectDecoratorServerSide({
+    env,
+    filePath: "dist/403/index.html",
+    params: { context: "arbeidsgiver" },
+  })
+    .then((html) => {
+      const csp = buildCspHeader(
+        {},
+        {
+          env,
+          params: { context: "arbeidsgiver" },
+        },
+      );
+      res.setHeader("Content-Security-Policy", csp);
+      res.status(403);
+      res.send(html);
+    })
+    .catch((error) => {
+      // eslint-disable-next-line no-undef
+      logger.error("Server: SSR error", error);
+      res.status(500).send("500 Error");
+    });
+});
+
+app.use("/ugyldig", function (_req, res) {
+  const env =
+    process.env.NEXT_PUBLIC_DECORATOR_ENV ??
+    (process.env.NAIS_CLUSTER_NAME === "prod-gcp" ? "prod" : "dev");
+
+  injectDecoratorServerSide({
+    env,
+    filePath: "dist/ugyldig/index.html",
+    params: { context: "arbeidsgiver" },
+  })
+    .then((html) => {
+      const csp = buildCspHeader(
+        {},
+        {
+          env,
+          params: { context: "arbeidsgiver" },
+        },
+      );
+      res.setHeader("Content-Security-Policy", csp);
+      res.status(400);
+      res.send(html);
+    })
+    .catch((error) => {
+      // eslint-disable-next-line no-undef
+      logger.error("Server: SSR error", error);
+      res.status(500).send("500 Error");
+    });
+});
+
+app.use(function (req, res) {
+  // eslint-disable-next-line no-undef
+  logger.info("Server: Error 404", req.url);
+  const env =
+    process.env.NEXT_PUBLIC_DECORATOR_ENV ??
+    (process.env.NAIS_CLUSTER_NAME === "prod-gcp" ? "prod" : "dev");
+
+  injectDecoratorServerSide({
+    env,
+    filePath: "dist/404/index.html",
+    params: { context: "arbeidsgiver" },
+  })
+    .then((html) => {
+      const csp = buildCspHeader(
+        {},
+        {
+          env,
+          params: { context: "arbeidsgiver" },
+        },
+      );
+      res.setHeader("Content-Security-Policy", csp);
+      res.status(404);
+      res.send(html);
+    })
+    .catch((error) => {
+      // eslint-disable-next-line no-undef
+      logger.error("Server: SSR error", error);
+      res.status(500).send("500 Error");
+    });
+});
+
+app.use(function (err, req, res) {
+  // eslint-disable-next-line no-undef
+  logger.error("Server: Error 500", err);
+  const env =
+    process.env.NEXT_PUBLIC_DECORATOR_ENV ??
+    (process.env.NAIS_CLUSTER_NAME === "prod-gcp" ? "prod" : "dev");
+
+  injectDecoratorServerSide({
+    env,
+    filePath: "dist/404/index.html",
+    params: { context: "arbeidsgiver" },
+  })
+    .then((html) => {
+      const csp = buildCspHeader(
+        {},
+        {
+          env,
+          params: { context: "arbeidsgiver" },
+        },
+      );
+      res.setHeader("Content-Security-Policy", csp);
+      res.send(html);
+    })
+    .catch((error) => {
+      // eslint-disable-next-line no-undef
+      logger.error("Server: SSR error", error);
+      res.status(500).send("500 Error");
+    });
+});
 
 // Start serveren bare hvis filen kjøres direkte (ikke under test)
 const isDirectRun =
