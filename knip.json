@@ -2,5 +2,5 @@
   "ignore": [ 
     "src/**/*.test.{ts,tsx}"
   ],
-  "ignoreDependencies": []
+  "ignoreDependencies": ["@vitest/coverage-v8"]
 }
