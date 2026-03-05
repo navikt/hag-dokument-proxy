@@ -9,6 +9,7 @@ import { logger } from "@navikt/pino-logger";
 import { validate } from "uuid";
 
 const app = express();
+app.disable("x-powered-by");
 
 const API_BASEPATH = process.env.API_BASEPATH || "";
 const AUDIENCE = process.env.AUDIENCE || "";
