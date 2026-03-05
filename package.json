@@ -9,6 +9,7 @@
   "scripts": {
     "start": "node src/server.js",
     "prepare": "husky",
+    "knip": "knip",
     "test": "vitest --coverage",
     "lint": "eslint"
   },
