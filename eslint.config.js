@@ -11,7 +11,7 @@ export default defineConfig([
     languageOptions: { globals: globals.node },
   },
   {
-    files: ["**/*.css"],
+    files: ["dist/**/*.css"],
     plugins: { css },
     language: "css/css",
     extends: ["css/recommended"],
