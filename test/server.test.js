@@ -1,4 +1,5 @@
-import { describe, it, expect, afterAll, vi } from "vitest";
+import { describe, it, expect, vi } from "vitest";
+import { Readable } from "node:stream";
 import request from "supertest";
 import app from "../src/server.js";
 import { validateToken, requestOboToken } from "@navikt/oasis";
@@ -15,22 +16,18 @@ const PDF_PATH =
   "/hent-dokument/sykmelding/550e8400-e29b-41d4-a716-446655440000.pdf";
 
 describe("Server", () => {
-  let server;
-
-  afterAll(() => {
-    if (server) server.close();
-  });
-
   it("skal returnere PDF ved gyldig forespørsel", async () => {
     vi.stubGlobal(
       "fetch",
-      vi.fn(() =>
-        Promise.resolve({
+      vi.fn(() => {
+        const body = Readable.from(Buffer.from("%PDF-test"));
+        return Promise.resolve({
           ok: true,
           status: 200,
-          arrayBuffer: () => Promise.resolve(new ArrayBuffer(8)),
-        }),
-      ),
+          headers: new Headers(),
+          body,
+        });
+      }),
     );
     const response = await request(app).get(PDF_PATH).expect(200);
     expect(response.headers["content-type"]).toContain("application/pdf");
