@@ -14,36 +14,53 @@ const API_BASEPATH = process.env.API_BASEPATH || "";
 const AUDIENCE = process.env.AUDIENCE || "";
 const GYLDIG_TYPE = new Set(["sykmelding", "soknad"]);
 
+function getDecoratorEnv() {
+  return (
+    process.env.NEXT_PUBLIC_DECORATOR_ENV ??
+    (process.env.NAIS_CLUSTER_NAME === "prod-gcp" ? "prod" : "dev")
+  );
+}
+
+async function renderDecoratedPage(res, filePath, statusCode = 200) {
+  const env = getDecoratorEnv();
+  const params = { context: "arbeidsgiver" };
+
+  try {
+    const html = await injectDecoratorServerSide({ env, filePath, params });
+    const csp = buildCspHeader({}, { env, params });
+    res.setHeader("Content-Security-Policy", csp);
+    res.status(statusCode).send(html);
+  } catch (error) {
+    logger.error("Server: SSR error", error);
+    res.status(500).send("500 Error");
+  }
+}
+
 // Redirect må komme FØR static middleware
 app.get("/hent-dokument/:dokumentType/:dokumentId.pdf", async (req, res) => {
-  const dokumentId = req.params.dokumentId;
-  const dokumentType = req.params.dokumentType;
+  const { dokumentId, dokumentType } = req.params;
 
-  if (!GYLDIG_TYPE.has(dokumentType)) {
-    return res.redirect(`/ugyldig`);
-  }
-
-  if (!dokumentId || !validate(dokumentId)) {
-    return res.redirect(`/ugyldig`);
+  if (!GYLDIG_TYPE.has(dokumentType) || !dokumentId || !validate(dokumentId)) {
+    return res.redirect("/ugyldig");
   }
 
   const token = getToken(req);
   if (!token) {
-    return res.redirect(`/feilmelding`);
+    return res.redirect("/feilmelding");
   }
+
   const validation = await validateToken(token);
   if (!validation.ok) {
     logger.error("Ugyldig token");
-    return res.redirect(`/feilmelding`);
+    return res.redirect("/feilmelding");
   }
 
   const obo = await requestOboToken(token, AUDIENCE);
   if (!obo.ok) {
-    logger.error("Feil ved henting av OBO-token med audience " + AUDIENCE);
-    return res.redirect(`/feilmelding`);
+    logger.error(`Feil ved henting av OBO-token med audience ${AUDIENCE}`);
+    return res.redirect("/feilmelding");
   }
 
-  // eslint-disable-next-line no-undef
   const data = await fetch(
     `${API_BASEPATH}/${dokumentType}/${dokumentId}/pdf`,
     {
@@ -56,212 +73,55 @@ app.get("/hent-dokument/:dokumentType/:dokumentId.pdf", async (req, res) => {
   );
 
   if (!data.ok) {
-    /* håndter feil ved henting av dokument */
-    // eslint-disable-next-line no-undef
     logger.error(
       `Feil ved henting av dokument: ${data.status} ${data.statusText}`,
     );
-    if (data.status === 404) {
-      return res.redirect(`/404`);
-    }
-    if (data.status === 403) {
-      return res.redirect(`/403`);
-    }
-    return res.redirect(`/feilmelding`);
+    if (data.status === 404) return res.redirect("/404");
+    if (data.status === 403) return res.redirect("/403");
+    return res.redirect("/feilmelding");
   }
 
+  logger.info(`Serverer dokument ${dokumentType}-${dokumentId}.pdf`);
+
+  res.status(data.status);
   res.contentType("application/pdf");
   res.setHeader(
     "Content-Disposition",
     `attachment; filename="${dokumentType}-${dokumentId}.pdf"`,
   );
-  const arrayBuffer = await data.arrayBuffer();
-  const buffer = Buffer.from(arrayBuffer);
 
-  logger.info(`Serverer dokument ${dokumentType}-${dokumentId}.pdf`);
-  logger.info(`Dokumentstørrelse: ${buffer.length} bytes`);
+  if (data.headers.get("content-length")) {
+    res.setHeader("Content-Length", data.headers.get("content-length"));
+  }
 
-  res.status(data.status);
-  res.send(buffer);
+  data.body.pipe(res);
 });
 
 app.use("/assets", express.static("dist/assets"));
 
-// Mount static files på /feilmelding path
-app.use("/feilmelding", function (_req, res) {
-  const env =
-    process.env.NEXT_PUBLIC_DECORATOR_ENV ??
-    (process.env.NAIS_CLUSTER_NAME === "prod-gcp" ? "prod" : "dev");
+app.use("/feilmelding", (_req, res) =>
+  renderDecoratedPage(res, "dist/feilmelding/index.html"),
+);
+app.use("/404", (_req, res) =>
+  renderDecoratedPage(res, "dist/404/index.html", 404),
+);
+app.use("/403", (_req, res) =>
+  renderDecoratedPage(res, "dist/403/index.html", 403),
+);
+app.use("/ugyldig", (_req, res) =>
+  renderDecoratedPage(res, "dist/ugyldig/index.html", 400),
+);
 
-  injectDecoratorServerSide({
-    env,
-    filePath: "dist/feilmelding/index.html",
-    params: { context: "arbeidsgiver" },
-  })
-    .then((html) => {
-      const csp = buildCspHeader(
-        {},
-        {
-          env,
-          params: { context: "arbeidsgiver" },
-        },
-      );
-      res.setHeader("Content-Security-Policy", csp);
-      res.send(html);
-    })
-    .catch((error) => {
-      // eslint-disable-next-line no-undef
-      logger.error("Server: SSR error", error);
-      res.status(500).send("500 Error");
-    });
-});
-
-app.use("/404", function (_req, res) {
-  const env =
-    process.env.NEXT_PUBLIC_DECORATOR_ENV ??
-    (process.env.NAIS_CLUSTER_NAME === "prod-gcp" ? "prod" : "dev");
-
-  injectDecoratorServerSide({
-    env,
-    filePath: "dist/404/index.html",
-    params: { context: "arbeidsgiver" },
-  })
-    .then((html) => {
-      const csp = buildCspHeader(
-        {},
-        {
-          env,
-          params: { context: "arbeidsgiver" },
-        },
-      );
-      res.setHeader("Content-Security-Policy", csp);
-      res.status(404);
-      res.send(html);
-    })
-    .catch((error) => {
-      // eslint-disable-next-line no-undef
-      logger.error("Server: SSR error", error);
-      res.status(500).send("500 Error");
-    });
-});
-
-app.use("/403", function (_req, res) {
-  const env =
-    process.env.NEXT_PUBLIC_DECORATOR_ENV ??
-    (process.env.NAIS_CLUSTER_NAME === "prod-gcp" ? "prod" : "dev");
-
-  injectDecoratorServerSide({
-    env,
-    filePath: "dist/403/index.html",
-    params: { context: "arbeidsgiver" },
-  })
-    .then((html) => {
-      const csp = buildCspHeader(
-        {},
-        {
-          env,
-          params: { context: "arbeidsgiver" },
-        },
-      );
-      res.setHeader("Content-Security-Policy", csp);
-      res.status(403);
-      res.send(html);
-    })
-    .catch((error) => {
-      // eslint-disable-next-line no-undef
-      logger.error("Server: SSR error", error);
-      res.status(500).send("500 Error");
-    });
-});
-
-app.use("/ugyldig", function (_req, res) {
-  const env =
-    process.env.NEXT_PUBLIC_DECORATOR_ENV ??
-    (process.env.NAIS_CLUSTER_NAME === "prod-gcp" ? "prod" : "dev");
-
-  injectDecoratorServerSide({
-    env,
-    filePath: "dist/ugyldig/index.html",
-    params: { context: "arbeidsgiver" },
-  })
-    .then((html) => {
-      const csp = buildCspHeader(
-        {},
-        {
-          env,
-          params: { context: "arbeidsgiver" },
-        },
-      );
-      res.setHeader("Content-Security-Policy", csp);
-      res.status(400);
-      res.send(html);
-    })
-    .catch((error) => {
-      // eslint-disable-next-line no-undef
-      logger.error("Server: SSR error", error);
-      res.status(500).send("500 Error");
-    });
-});
-
-app.use(function (req, res) {
-  // eslint-disable-next-line no-undef
+app.use((req, _res, next) => {
   logger.info("Server: Error 404", req.url);
-  const env =
-    process.env.NEXT_PUBLIC_DECORATOR_ENV ??
-    (process.env.NAIS_CLUSTER_NAME === "prod-gcp" ? "prod" : "dev");
-
-  injectDecoratorServerSide({
-    env,
-    filePath: "dist/404/index.html",
-    params: { context: "arbeidsgiver" },
-  })
-    .then((html) => {
-      const csp = buildCspHeader(
-        {},
-        {
-          env,
-          params: { context: "arbeidsgiver" },
-        },
-      );
-      res.setHeader("Content-Security-Policy", csp);
-      res.status(404);
-      res.send(html);
-    })
-    .catch((error) => {
-      // eslint-disable-next-line no-undef
-      logger.error("Server: SSR error", error);
-      res.status(500).send("500 Error");
-    });
+  next();
 });
 
-app.use(function (err, req, res) {
-  // eslint-disable-next-line no-undef
-  logger.error("Server: Error 500", err);
-  const env =
-    process.env.NEXT_PUBLIC_DECORATOR_ENV ??
-    (process.env.NAIS_CLUSTER_NAME === "prod-gcp" ? "prod" : "dev");
+app.use((_req, res) => renderDecoratedPage(res, "dist/404/index.html", 404));
 
-  injectDecoratorServerSide({
-    env,
-    filePath: "dist/404/index.html",
-    params: { context: "arbeidsgiver" },
-  })
-    .then((html) => {
-      const csp = buildCspHeader(
-        {},
-        {
-          env,
-          params: { context: "arbeidsgiver" },
-        },
-      );
-      res.setHeader("Content-Security-Policy", csp);
-      res.send(html);
-    })
-    .catch((error) => {
-      // eslint-disable-next-line no-undef
-      logger.error("Server: SSR error", error);
-      res.status(500).send("500 Error");
-    });
+app.use((err, _req, res, _next) => {
+  logger.error("Server: Error 500", err);
+  renderDecoratedPage(res, "dist/404/index.html");
 });
 
 // Start serveren bare hvis filen kjøres direkte (ikke under test)
