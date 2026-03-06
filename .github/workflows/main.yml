@@ -24,12 +24,12 @@ jobs:
         run: pnpm install --frozen-lockfile  --ignore-scripts --prod
       - name: Build and push image and SBOM to OCI registry
         if: steps.changed-files.outputs.changed != 'only-inputs'
-        uses: nais/docker-build-push@v0
+        uses: nais/docker-build-push@ae613eff6f44f0323476eda1c3994a7c518761c3
         id: docker-build-push
         with:
           team: helsearbeidsgiver
       - name: Deploy to Nais
-        uses: nais/deploy/actions/deploy@v2
+        uses: nais/deploy/actions/deploy@fa754451577294aae42872a69b888b3470478ec1
         env:
           CLUSTER: dev-gcp
           RESOURCE: .nais/dev.yml
