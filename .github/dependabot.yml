@@ -1,67 +1,32 @@
-# To get started with Dependabot version updates, you'll need to specify which
-# package ecosystems to update and where the package manifests are located.
-# Please see the documentation for all configuration options:
-# https://docs.github.com/github/administering-a-repository/configuration-options-for-dependency-updates
-
 version: 2
 updates:
-  # Maintain dependencies for pnpm
-  - package-ecosystem: 'npm' # See documentation for possible values
-    directory: '/' # Location of package manifests
+  - package-ecosystem: 'npm'
+    directory: '/'
     registries:
       - npm-github
     schedule:
       interval: 'daily'
     groups:
-      aksel:
+      navikt:
         patterns:
-          - '@navikt/ds*'
-          - '@navikt/aksel*'
+          - '@navikt/*'
       vitest:
         patterns:
           - 'vitest'
           - '@vitest/*'
-      react:
-        patterns:
-          - 'react'
-          - 'react-dom'
-          - '@types/react'
-          - '@types/react-dom'
-      typescript:
-        patterns:
-          - 'typescript'
-          - '@types/*'
       eslint:
         patterns:
           - 'eslint'
-          - '@typescript-eslint/*'
           - '@eslint/*'
           - 'eslint-plugin-*'
-          - 'typescript-eslint'
-      oversettelse:
-        patterns:
-          - 'i18next'
-          - 'react-i18next'
-      grafana:
-        patterns:
-          - '@grafana/*'
 
-  # Maintain dependencies for Docker
-  - package-ecosystem: 'docker' # See documentation for possible values
-    directory: '/' # Location of package manifests
-    schedule:
-      interval: 'weekly'
-
-  # Maintain dependencies for GitHub Actions
-  - package-ecosystem: 'github-actions'
+  - package-ecosystem: 'docker'
     directory: '/'
     schedule:
       interval: 'daily'
 
-  - package-ecosystem: 'npm' # See documentation for possible values
-    directory: '/server' # Location of package manifests
-    registries:
-      - npm-github
+  - package-ecosystem: 'github-actions'
+    directory: '/'
     schedule:
       interval: 'daily'
 
