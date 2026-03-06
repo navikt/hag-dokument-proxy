@@ -68,6 +68,7 @@ app.get("/hent-dokument/:dokumentType/:dokumentId.pdf", async (req, res) => {
     logger.error(`Feil ved henting av dokument: ${data.status} ${data.statusText}`);
     if (data.status === 404) return res.redirect("/404");
     if (data.status === 403) return res.redirect("/403");
+    if (data.status === 401) return res.redirect("/403");
     return res.redirect("/feilmelding");
   }
 
@@ -101,7 +102,7 @@ app.use((_req, res) => renderDecoratedPage(res, "dist/404/index.html", 404));
 // eslint-disable-next-line no-unused-vars
 app.use((err, _req, res, _next) => {
   logger.error("Server: Error 500", err);
-  renderDecoratedPage(res, "dist/404/index.html");
+  renderDecoratedPage(res, "dist/500/index.html", 500);
 });
 
 // Start serveren bare hvis filen kjøres direkte (ikke under test)
