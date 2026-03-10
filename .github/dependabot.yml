@@ -6,6 +6,10 @@ updates:
       - npm-github
     schedule:
       interval: 'daily'
+    cooldown:
+      default-days: 3
+      exclude:
+        - "@navikt*"
     groups:
       navikt:
         patterns:
