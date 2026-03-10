@@ -20,7 +20,7 @@ function mockFetch({ ok = true, status = 200, contentLength = null } = {}) {
     vi.fn(() => {
       const headers = new Headers();
       if (contentLength) headers.set("content-length", String(contentLength));
-      const body = Readable.from(Buffer.from("%PDF-test"));
+      const body = Readable.toWeb(Readable.from(Buffer.from("%PDF-test")));
       return Promise.resolve({
         ok,
         status,

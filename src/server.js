@@ -1,6 +1,7 @@
 import express from "express";
 import { getToken, validateToken, requestOboToken } from "@navikt/oasis";
 import { fileURLToPath } from "node:url";
+import { Readable } from "node:stream";
 import { buildCspHeader, injectDecoratorServerSide } from "@navikt/nav-dekoratoren-moduler/ssr/index.js";
 import { logger } from "@navikt/pino-logger";
 import { validate } from "uuid";
@@ -59,7 +60,7 @@ app.get("/hent-dokument/:dokumentType/:dokumentId.pdf", async (req, res) => {
   const data = await fetch(`${API_BASEPATH}/${dokumentType}/${dokumentId}/pdf`, {
     method: "GET",
     headers: {
-      "Content-Type": "application/pdf",
+      Accept: "application/pdf",
       Authorization: `Bearer ${obo.token}`,
     },
   });
@@ -82,7 +83,7 @@ app.get("/hent-dokument/:dokumentType/:dokumentId.pdf", async (req, res) => {
     res.setHeader("Content-Length", data.headers.get("content-length"));
   }
 
-  data.body.pipe(res);
+  Readable.fromWeb(data.body).pipe(res);
 });
 
 app.use("/assets", express.static("dist/assets"));
