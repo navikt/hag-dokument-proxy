@@ -7,11 +7,13 @@ import { getToken, validateToken, requestOboToken } from "@navikt/oasis";
 vi.mock("@navikt/oasis", () => ({
   getToken: vi.fn(() => "mock-token"),
   validateToken: vi.fn(() => Promise.resolve({ ok: true })),
-  requestOboToken: vi.fn(() => Promise.resolve({ ok: true, token: "obo-token" })),
+  requestOboToken: vi.fn(() =>
+    Promise.resolve({ ok: true, token: "obo-token" }),
+  ),
 }));
 
-const SYKMELDING_PATH = "/hent-dokument/sykmelding/550e8400-e29b-41d4-a716-446655440000.pdf";
-const SOKNAD_PATH = "/hent-dokument/soknad/550e8400-e29b-41d4-a716-446655440000.pdf";
+const SYKMELDING_PATH = "/sykmelding/550e8400-e29b-41d4-a716-446655440000.pdf";
+const SOKNAD_PATH = "/soknad/550e8400-e29b-41d4-a716-446655440000.pdf";
 const DOKUMENT_ID = "550e8400-e29b-41d4-a716-446655440000";
 
 function mockFetch({ ok = true, status = 200, contentLength = null } = {}) {
@@ -68,7 +70,9 @@ describe("Server", () => {
     it("skal sette Content-Disposition med riktig filnavn", async () => {
       mockFetch();
       const response = await request(app).get(SYKMELDING_PATH).expect(200);
-      expect(response.headers["content-disposition"]).toBe(`inline; filename="sykmelding-${DOKUMENT_ID}.pdf"`);
+      expect(response.headers["content-disposition"]).toBe(
+        `inline; filename="sykmelding-${DOKUMENT_ID}.pdf"`,
+      );
     });
 
     it("skal videresende Content-Length når upstream sender den", async () => {
@@ -98,13 +102,15 @@ describe("Server", () => {
 
     it("skal redirecte til /ugyldig når dokumentType er ugyldig", async () => {
       const response = await request(app)
-        .get("/hent-dokument/ugyldig/550e8400-e29b-41d4-a716-446655440000.pdf")
+        .get("/ukjent-type/550e8400-e29b-41d4-a716-446655440000.pdf")
         .expect(302);
       expect(response.headers.location).toBe("/ugyldig");
     });
 
     it("skal redirecte til /ugyldig når dokumentId ikke er en gyldig UUID", async () => {
-      const response = await request(app).get("/hent-dokument/sykmelding/ikke-en-uuid.pdf").expect(302);
+      const response = await request(app)
+        .get("/sykmelding/ikke-en-uuid.pdf")
+        .expect(302);
       expect(response.headers.location).toBe("/ugyldig");
     });
 
