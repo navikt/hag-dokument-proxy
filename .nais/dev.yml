@@ -15,7 +15,7 @@ spec:
   tokenx:
     enabled: true
   ingresses:
-    - https://hag-dokument-proxy.ekstern.dev.nav.no/dokument
+    - https://hag-dokument-proxy.ekstern.dev.nav.no
   replicas:
     min: 1
     max: 1
