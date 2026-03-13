@@ -39,3 +39,4 @@ registries:
     type: npm-registry
     url: https://npm.pkg.github.com
     token: ${{ secrets.READER_TOKEN }}
+    replaces-base: false
