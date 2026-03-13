@@ -12,8 +12,9 @@ vi.mock("@navikt/oasis", () => ({
   ),
 }));
 
-const SYKMELDING_PATH = "/sykmelding/550e8400-e29b-41d4-a716-446655440000.pdf";
-const SOKNAD_PATH = "/soknad/550e8400-e29b-41d4-a716-446655440000.pdf";
+const SYKMELDING_PATH =
+  "/dokument/sykmelding/550e8400-e29b-41d4-a716-446655440000.pdf";
+const SOKNAD_PATH = "/dokument/soknad/550e8400-e29b-41d4-a716-446655440000.pdf";
 const DOKUMENT_ID = "550e8400-e29b-41d4-a716-446655440000";
 
 function mockFetch({ ok = true, status = 200, contentLength = null } = {}) {
@@ -85,51 +86,51 @@ describe("Server", () => {
     it("skal redirecte til /feilmelding når token mangler", async () => {
       vi.mocked(getToken).mockReturnValueOnce(null);
       const response = await request(app).get(SYKMELDING_PATH).expect(302);
-      expect(response.headers.location).toBe("/feilmelding");
+      expect(response.headers.location).toBe("/dokument/feilmelding");
     });
 
     it("skal redirecte til /feilmelding når token er ugyldig", async () => {
       vi.mocked(validateToken).mockResolvedValueOnce({ ok: false });
       const response = await request(app).get(SYKMELDING_PATH).expect(302);
-      expect(response.headers.location).toBe("/feilmelding");
+      expect(response.headers.location).toBe("/dokument/feilmelding");
     });
 
     it("skal redirecte til /feilmelding når OBO-token feiler", async () => {
       vi.mocked(requestOboToken).mockResolvedValueOnce({ ok: false });
       const response = await request(app).get(SYKMELDING_PATH).expect(302);
-      expect(response.headers.location).toBe("/feilmelding");
+      expect(response.headers.location).toBe("/dokument/feilmelding");
     });
 
     it("skal redirecte til /ugyldig når dokumentType er ugyldig", async () => {
       const response = await request(app)
-        .get("/ukjent-type/550e8400-e29b-41d4-a716-446655440000.pdf")
+        .get("/dokument/ukjent-type/550e8400-e29b-41d4-a716-446655440000.pdf")
         .expect(302);
-      expect(response.headers.location).toBe("/ugyldig");
+      expect(response.headers.location).toBe("/dokument/ugyldig");
     });
 
     it("skal redirecte til /ugyldig når dokumentId ikke er en gyldig UUID", async () => {
       const response = await request(app)
-        .get("/sykmelding/ikke-en-uuid.pdf")
+        .get("/dokument/sykmelding/ikke-en-uuid.pdf")
         .expect(302);
-      expect(response.headers.location).toBe("/ugyldig");
+      expect(response.headers.location).toBe("/dokument/ugyldig");
     });
 
     it("skal redirecte til /404 når upstream returnerer 404", async () => {
       mockFetch({ ok: false, status: 404 });
       const response = await request(app).get(SYKMELDING_PATH).expect(302);
-      expect(response.headers.location).toBe("/404");
+      expect(response.headers.location).toBe("/dokument/404");
     });
 
     it("skal redirecte til /403 når upstream returnerer 403", async () => {
       mockFetch({ ok: false, status: 403 });
       const response = await request(app).get(SYKMELDING_PATH).expect(302);
-      expect(response.headers.location).toBe("/403");
+      expect(response.headers.location).toBe("/dokument/403");
     });
 
     it("skal redirecte til /feilmelding ved annen upstream-feil", async () => {
       mockFetch({ ok: false, status: 500 });
       const response = await request(app).get(SYKMELDING_PATH).expect(302);
-      expect(response.headers.location).toBe("/feilmelding");
+      expect(response.headers.location).toBe("/dokument/feilmelding");
     });
   });
 

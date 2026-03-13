@@ -15,6 +15,7 @@ app.disable("x-powered-by");
 const API_BASEPATH = process.env.API_BASEPATH || "";
 const AUDIENCE = process.env.AUDIENCE || "";
 const GYLDIG_TYPE = new Set(["sykmelding", "soknad"]);
+const BASE_PATH = "/dokument";
 
 function getDecoratorEnv() {
   return (
@@ -38,43 +39,43 @@ async function renderDecoratedPage(res, filePath, statusCode = 200) {
   }
 }
 
-app.use("/assets", express.static("dist/assets"));
+app.use(`${BASE_PATH}/assets`, express.static("dist/assets"));
 
-app.use("/feilmelding", (_req, res) =>
+app.use(`${BASE_PATH}/feilmelding`, (_req, res) =>
   renderDecoratedPage(res, "dist/feilmelding/index.html"),
 );
-app.use("/404", (_req, res) =>
+app.use(`${BASE_PATH}/404`, (_req, res) =>
   renderDecoratedPage(res, "dist/404/index.html", 404),
 );
-app.use("/403", (_req, res) =>
+app.use(`${BASE_PATH}/403`, (_req, res) =>
   renderDecoratedPage(res, "dist/403/index.html", 403),
 );
-app.use("/ugyldig", (_req, res) =>
+app.use(`${BASE_PATH}/ugyldig`, (_req, res) =>
   renderDecoratedPage(res, "dist/ugyldig/index.html", 400),
 );
 
-app.get("/:dokumentType/:dokumentId.pdf", async (req, res) => {
+app.get(`${BASE_PATH}/:dokumentType/:dokumentId.pdf`, async (req, res) => {
   const { dokumentId, dokumentType } = req.params;
 
   if (!GYLDIG_TYPE.has(dokumentType) || !dokumentId || !validate(dokumentId)) {
-    return res.redirect("/ugyldig");
+    return res.redirect(`${BASE_PATH}/ugyldig`);
   }
 
   const token = getToken(req);
   if (!token) {
-    return res.redirect("/feilmelding");
+    return res.redirect(`${BASE_PATH}/feilmelding`);
   }
 
   const validation = await validateToken(token);
   if (!validation.ok) {
     logger.error("Ugyldig token");
-    return res.redirect("/feilmelding");
+    return res.redirect(`${BASE_PATH}/feilmelding`);
   }
 
   const obo = await requestOboToken(token, AUDIENCE);
   if (!obo.ok) {
     logger.error(`Feil ved henting av OBO-token med audience ${AUDIENCE}`);
-    return res.redirect("/feilmelding");
+    return res.redirect(`${BASE_PATH}/feilmelding`);
   }
 
   const data = await fetch(
@@ -92,10 +93,10 @@ app.get("/:dokumentType/:dokumentId.pdf", async (req, res) => {
     logger.error(
       `Feil ved henting av dokument: ${data.status} ${data.statusText}`,
     );
-    if (data.status === 404) return res.redirect("/404");
-    if (data.status === 403) return res.redirect("/403");
-    if (data.status === 401) return res.redirect("/403");
-    return res.redirect("/feilmelding");
+    if (data.status === 404) return res.redirect(`${BASE_PATH}/404`);
+    if (data.status === 403) return res.redirect(`${BASE_PATH}/403`);
+    if (data.status === 401) return res.redirect(`${BASE_PATH}/403`);
+    return res.redirect(`${BASE_PATH}/feilmelding`);
   }
 
   logger.info(`Serverer dokument ${dokumentType}-${dokumentId}.pdf`);
