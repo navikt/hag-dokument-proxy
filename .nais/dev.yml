@@ -14,8 +14,10 @@ spec:
       autoLogin: true
   tokenx:
     enabled: true
-  ingresses:
-    - https://hag-dokument-proxy.ekstern.dev.nav.no
+  ingresses: [
+    "https://hag-dokument-proxy.ekstern.dev.nav.no",
+    "https://arbeidsgiver.intern.dev.nav.no/dokument"
+  ]
   replicas:
     min: 1
     max: 1
