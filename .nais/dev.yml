@@ -16,7 +16,8 @@ spec:
     enabled: true
   ingresses: [
     "https://hag-dokument-proxy.ekstern.dev.nav.no",
-    "https://arbeidsgiver.intern.dev.nav.no/dokument"
+    "https://arbeidsgiver.intern.dev.nav.no/dokument",
+    "https://arbeidsgiver.ekstern.dev.nav.no/dokument"
   ]
   replicas:
     min: 1
