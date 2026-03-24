@@ -1,0 +1,47 @@
+apiVersion: nais.io/v1alpha1
+kind: Application
+metadata:
+  name: hag-dokument-proxy
+  namespace: helsearbeidsgiver
+  labels:
+    team: helsearbeidsgiver
+spec:
+  image: {{ image }}
+  idporten:
+    enabled: true
+    sidecar:
+      enabled: true
+      autoLogin: true
+  tokenx:
+    enabled: true
+  ingresses: [
+    "https://arbeidsgiver.nav.no/dokument"
+  ]
+  replicas:
+    min: 1
+    max: 1
+  accessPolicy:
+    outbound:
+      rules:
+        - application: nav-dekoratoren
+          namespace: personbruker
+        - application: sykepenger-im-lps-api
+          namespace: helsearbeidsgiver
+  resources:
+    limits:
+      memory: 256Mi
+    requests:
+      cpu: 50m
+      memory: 128Mi
+  observability:
+    autoInstrumentation:
+      enabled: true
+      runtime: nodejs
+    logging:
+      destinations:
+        - id: loki
+  env:
+      - name: AUDIENCE
+        value: 'prod-gcp:helsearbeidsgiver:sykepenger-im-lps-api'
+      - name: API_BASEPATH
+        value: 'http://sykepenger-im-lps-api/intern/personbruker/'
