@@ -2,10 +2,6 @@ import express from "express";
 import { getToken, validateToken, requestOboToken } from "@navikt/oasis";
 import { fileURLToPath } from "node:url";
 import { Readable } from "node:stream";
-import {
-  buildCspHeader,
-  injectDecoratorServerSide,
-} from "@navikt/nav-dekoratoren-moduler/ssr/index.js";
 import { logger } from "@navikt/pino-logger";
 import { validate } from "uuid";
 
@@ -16,6 +12,7 @@ const API_BASEPATH = process.env.API_BASEPATH || "";
 const AUDIENCE = process.env.AUDIENCE || "";
 const GYLDIG_TYPE = new Set(["sykmelding", "soknad"]);
 const BASE_PATH = "/dokument";
+let decoratorModulePromise;
 
 function getDecoratorEnv() {
   return (
@@ -24,18 +21,32 @@ function getDecoratorEnv() {
   );
 }
 
+async function getDecoratorModule() {
+  if (!decoratorModulePromise) {
+    decoratorModulePromise =
+      import("@navikt/nav-dekoratoren-moduler/ssr/index.js");
+  }
+  return decoratorModulePromise;
+}
+
 async function renderDecoratedPage(res, filePath, statusCode = 200) {
   const env = getDecoratorEnv();
   const params = { context: "arbeidsgiver" };
 
   try {
+    const { injectDecoratorServerSide, buildCspHeader } =
+      await getDecoratorModule();
     const html = await injectDecoratorServerSide({ env, filePath, params });
     const csp = buildCspHeader({}, { env, params });
     res.setHeader("Content-Security-Policy", csp);
     res.status(statusCode).send(html);
   } catch (error) {
-    logger.error("Server: SSR error", error);
-    res.status(500).send("500 Error");
+    logger.error("Server: SSR error, falling back to plain HTML", error);
+    res.status(statusCode).sendFile(filePath, { root: process.cwd() }, () => {
+      if (!res.headersSent) {
+        res.status(500).send("500 Error");
+      }
+    });
   }
 }
 
