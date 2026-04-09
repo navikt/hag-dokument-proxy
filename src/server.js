@@ -23,8 +23,12 @@ function getDecoratorEnv() {
 
 async function getDecoratorModule() {
   if (!decoratorModulePromise) {
-    decoratorModulePromise =
-      import("@navikt/nav-dekoratoren-moduler/ssr/index.js");
+    decoratorModulePromise = import(
+      "@navikt/nav-dekoratoren-moduler/ssr/index.js",
+    ).catch((error) => {
+      decoratorModulePromise = undefined;
+      throw error;
+    });
   }
   return decoratorModulePromise;
 }
