@@ -2,6 +2,7 @@ import { describe, it, expect, vi, beforeEach } from "vitest";
 import { Readable } from "node:stream";
 import request from "supertest";
 import { getToken, validateToken, requestOboToken } from "@navikt/oasis";
+import * as decoratorModule from "@navikt/nav-dekoratoren-moduler/ssr/index.js";
 
 vi.mock("@navikt/nav-dekoratoren-moduler/ssr/index.js", () => ({
   buildCspHeader: vi.fn(() => ""),
@@ -151,6 +152,14 @@ describe("Server", () => {
     it("skal returnere 404 for ukjente stier", async () => {
       const response = await request(app).get("/finnes-ikke");
       expect(response.status).toBe(404);
+    });
+
+    it("skal falle tilbake til statisk HTML ved SSR-feil", async () => {
+      vi.mocked(decoratorModule.injectDecoratorServerSide).mockRejectedValueOnce(
+        new Error("SSR feilet"),
+      );
+      const response = await request(app).get("/dokument/feilmelding");
+      expect(response.status).toBe(200);
     });
   });
 });
