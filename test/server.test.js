@@ -2,7 +2,6 @@ import { describe, it, expect, vi, beforeEach } from "vitest";
 import { Readable } from "node:stream";
 import request from "supertest";
 import { getToken, validateToken, requestOboToken } from "@navikt/oasis";
-import app from "../src/server.js";
 
 vi.mock("@navikt/nav-dekoratoren-moduler/ssr/index.js", () => ({
   buildCspHeader: vi.fn(() => ""),
@@ -15,6 +14,8 @@ vi.mock("@navikt/pino-logger", () => ({
     info: vi.fn(),
   },
 }));
+
+const { default: app } = await import("../src/server.js");
 
 vi.mock("@navikt/oasis", () => ({
   getToken: vi.fn(() => "mock-token"),
