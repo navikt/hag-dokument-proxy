@@ -46,9 +46,12 @@ async function renderDecoratedPage(res, filePath, statusCode = 200) {
     res.status(statusCode).send(html);
   } catch (error) {
     logger.error("Server: SSR error, falling back to plain HTML", error);
-    res.status(statusCode).sendFile(filePath, { root: process.cwd() }, () => {
-      if (!res.headersSent) {
-        res.status(500).send("500 Error");
+    res.status(statusCode).sendFile(filePath, { root: process.cwd() }, (err) => {
+      if (err) {
+        logger.error("Server: sendFile error", err);
+        if (!res.headersSent) {
+          res.status(500).send("500 Error");
+        }
       }
     });
   }
