@@ -1,8 +1,20 @@
 import { describe, it, expect, vi, beforeEach } from "vitest";
 import { Readable } from "node:stream";
 import request from "supertest";
-import app from "../src/server.js";
 import { getToken, validateToken, requestOboToken } from "@navikt/oasis";
+import app from "../src/server.js";
+
+vi.mock("@navikt/nav-dekoratoren-moduler/ssr/index.js", () => ({
+  buildCspHeader: vi.fn(() => ""),
+  injectDecoratorServerSide: vi.fn(() => Promise.resolve("<html></html>")),
+}));
+
+vi.mock("@navikt/pino-logger", () => ({
+  logger: {
+    error: vi.fn(),
+    info: vi.fn(),
+  },
+}));
 
 vi.mock("@navikt/oasis", () => ({
   getToken: vi.fn(() => "mock-token"),
