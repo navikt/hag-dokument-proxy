@@ -28,7 +28,7 @@ vi.mock("@navikt/oasis", () => ({
 
 const SYKMELDING_PATH =
   "/dokument/sykmelding/550e8400-e29b-41d4-a716-446655440000.pdf";
-const SOKNAD_PATH = "/dokument/soknad/550e8400-e29b-41d4-a716-446655440000.pdf";
+const SOKNAD_PATH = "/dokument/sykepengesoeknad/550e8400-e29b-41d4-a716-446655440000.pdf";
 const DOKUMENT_ID = "550e8400-e29b-41d4-a716-446655440000";
 
 function mockFetch({ ok = true, status = 200, contentLength = null } = {}) {
