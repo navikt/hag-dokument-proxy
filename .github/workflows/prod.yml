@@ -18,7 +18,7 @@ jobs:
           node-version: "24.0"
           registry-url: "https://npm.pkg.github.com"
       - name: Setup pnpm
-        uses: pnpm/action-setup@fc06bc1257f339d1d5d8b3a19a8cae5388b55320
+        uses: pnpm/action-setup@903f9c1a6ebcba6cf41d87230be49611ac97822e
       - name: Install dependencies
         run: pnpm install --frozen-lockfile  --ignore-scripts --prod
       - name: Build and push image and SBOM to OCI registry
