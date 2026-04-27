@@ -10,7 +10,16 @@ app.disable("x-powered-by");
 
 const API_BASEPATH = process.env.API_BASEPATH || "";
 const AUDIENCE = process.env.AUDIENCE || "";
+const FRITAKAGP_API_BASEPATH = process.env.FRITAKAGP_API_BASEPATH || "";
+const FRITAKAGP_AUDIENCE = process.env.FRITAKAGP_AUDIENCE || "";
+const PDFGEN_BASEPATH = process.env.PDFGEN_BASEPATH || "";
 const GYLDIG_TYPE = new Set(["sykmelding", "sykepengesoeknad"]);
+const FRITAKAGP_TYPE = new Map([
+  ["gravid-soknad", { apiPath: "/api/v1/gravid/soeknad", pdfgenPath: "/api/v1/genpdf/gravid-soknad/gravid-soknad" }],
+  ["gravid-krav", { apiPath: "/api/v1/gravid/krav", pdfgenPath: "/api/v1/genpdf/gravid-krav/gravid-krav" }],
+  ["kronisk-soknad", { apiPath: "/api/v1/kronisk/soeknad", pdfgenPath: "/api/v1/genpdf/kronisk-soknad/kronisk-soknad" }],
+  ["kronisk-krav", { apiPath: "/api/v1/kronisk/krav", pdfgenPath: "/api/v1/genpdf/kronisk-krav/kronisk-krav" }],
+]);
 const BASE_PATH = "/dokument";
 let decoratorModulePromise;
 
@@ -75,7 +84,13 @@ app.use(`${BASE_PATH}/ugyldig`, (_req, res) =>
 app.get(`${BASE_PATH}/:dokumentType/:dokumentId.pdf`, async (req, res) => {
   const { dokumentId, dokumentType } = req.params;
 
-  if (!GYLDIG_TYPE.has(dokumentType) || !dokumentId || !validate(dokumentId)) {
+  if (!dokumentId || !validate(dokumentId)) {
+    return res.redirect(`${BASE_PATH}/ugyldig`);
+  }
+
+  const isFritakagp = FRITAKAGP_TYPE.has(dokumentType);
+
+  if (!GYLDIG_TYPE.has(dokumentType) && !isFritakagp) {
     return res.redirect(`${BASE_PATH}/ugyldig`);
   }
 
@@ -88,6 +103,10 @@ app.get(`${BASE_PATH}/:dokumentType/:dokumentId.pdf`, async (req, res) => {
   if (!validation.ok) {
     logger.error("Ugyldig token");
     return res.redirect(`${BASE_PATH}/feilmelding`);
+  }
+
+  if (isFritakagp) {
+    return handleFritakagpPdf(req, res, token, dokumentType, dokumentId);
   }
 
   const obo = await requestOboToken(token, AUDIENCE);
@@ -132,6 +151,70 @@ app.get(`${BASE_PATH}/:dokumentType/:dokumentId.pdf`, async (req, res) => {
 
   Readable.fromWeb(data.body).pipe(res);
 });
+
+async function handleFritakagpPdf(req, res, token, dokumentType, dokumentId) {
+  const config = FRITAKAGP_TYPE.get(dokumentType);
+
+  const obo = await requestOboToken(token, FRITAKAGP_AUDIENCE);
+  if (!obo.ok) {
+    logger.error(`Feil ved henting av OBO-token med audience ${FRITAKAGP_AUDIENCE}`);
+    return res.redirect(`${BASE_PATH}/feilmelding`);
+  }
+
+  const jsonResponse = await fetch(
+    `${FRITAKAGP_API_BASEPATH}${config.apiPath}/${dokumentId}`,
+    {
+      method: "GET",
+      headers: {
+        Accept: "application/json",
+        Authorization: `Bearer ${obo.token}`,
+      },
+    },
+  );
+
+  if (!jsonResponse.ok) {
+    logger.error(
+      `Feil ved henting av fritakagp-data: ${jsonResponse.status} ${jsonResponse.statusText}`,
+    );
+    if (jsonResponse.status === 404) return res.redirect(`${BASE_PATH}/404`);
+    if (jsonResponse.status === 403) return res.redirect(`${BASE_PATH}/403`);
+    if (jsonResponse.status === 401) return res.redirect(`${BASE_PATH}/403`);
+    return res.redirect(`${BASE_PATH}/feilmelding`);
+  }
+
+  const jsonData = await jsonResponse.json();
+
+  const pdfResponse = await fetch(
+    `${PDFGEN_BASEPATH}${config.pdfgenPath}`,
+    {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify(jsonData),
+    },
+  );
+
+  if (!pdfResponse.ok) {
+    logger.error(
+      `Feil ved generering av PDF fra pdfgen: ${pdfResponse.status} ${pdfResponse.statusText}`,
+    );
+    return res.redirect(`${BASE_PATH}/feilmelding`);
+  }
+
+  logger.info(`Serverer fritakagp-dokument ${dokumentType}-${dokumentId}.pdf`);
+
+  res.status(200);
+  res.contentType("application/pdf");
+  res.setHeader(
+    "Content-Disposition",
+    `inline; filename="${dokumentType}-${dokumentId}.pdf"`,
+  );
+
+  if (pdfResponse.headers.get("content-length")) {
+    res.setHeader("Content-Length", pdfResponse.headers.get("content-length"));
+  }
+
+  Readable.fromWeb(pdfResponse.body).pipe(res);
+}
 
 app.use((req, _res, next) => {
   logger.info("Server: Error 404", req.url);

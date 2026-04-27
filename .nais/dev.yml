@@ -29,6 +29,10 @@ spec:
           namespace: personbruker
         - application: sykepenger-im-lps-api
           namespace: helsearbeidsgiver
+        - application: fritakagp
+          namespace: helsearbeidsgiver
+        - application: helsearbeidsgiver-pdfgen
+          namespace: helsearbeidsgiver
   resources:
     limits:
       memory: 256Mi
@@ -47,3 +51,9 @@ spec:
         value: 'dev-gcp:helsearbeidsgiver:sykepenger-im-lps-api'
       - name: API_BASEPATH
         value: 'http://sykepenger-im-lps-api/intern/personbruker/'
+      - name: FRITAKAGP_AUDIENCE
+        value: 'dev-gcp:helsearbeidsgiver:fritakagp'
+      - name: FRITAKAGP_API_BASEPATH
+        value: 'http://fritakagp'
+      - name: PDFGEN_BASEPATH
+        value: 'http://helsearbeidsgiver-pdfgen'
