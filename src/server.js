@@ -157,7 +157,7 @@ async function handleFritakagpPdf(req, res, token, dokumentType, dokumentId) {
 
   const obo = await requestOboToken(token, FRITAKAGP_AUDIENCE);
   if (!obo.ok) {
-    logger.error(`Feil ved henting av OBO-token med audience ${FRITAKAGP_AUDIENCE}`);
+    logger.error(`Feil ved henting av OBO-token med audience ${FRITAKAGP_AUDIENCE}: ${obo.error}`);
     return res.redirect(`${BASE_PATH}/feilmelding`);
   }
 
