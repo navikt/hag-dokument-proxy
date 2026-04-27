@@ -54,6 +54,6 @@ spec:
       - name: FRITAKAGP_AUDIENCE
         value: 'dev-gcp:helsearbeidsgiver:fritakagp'
       - name: FRITAKAGP_API_BASEPATH
-        value: 'http://fritakagp'
+        value: 'http://fritakagp/fritak-agp-api'
       - name: PDFGEN_BASEPATH
         value: 'http://helsearbeidsgiver-pdfgen'
