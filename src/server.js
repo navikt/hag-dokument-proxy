@@ -15,9 +15,9 @@ const FRITAKAGP_AUDIENCE = process.env.FRITAKAGP_AUDIENCE || "";
 const PDFGEN_BASEPATH = process.env.PDFGEN_BASEPATH || "";
 const GYLDIG_TYPE = new Set(["sykmelding", "sykepengesoeknad"]);
 const FRITAKAGP_TYPE = new Map([
-  ["gravid-soknad", { apiPath: "/api/v1/gravid/soeknad", pdfgenPath: "/api/v1/genpdf/gravid-soknad/gravid-soknad" }],
+  ["gravid-soeknad", { apiPath: "/api/v1/gravid/soeknad", pdfgenPath: "/api/v1/genpdf/gravid-soknad/gravid-soknad" }],
   ["gravid-krav", { apiPath: "/api/v1/gravid/krav", pdfgenPath: "/api/v1/genpdf/gravid-krav/gravid-krav" }],
-  ["kronisk-soknad", { apiPath: "/api/v1/kronisk/soeknad", pdfgenPath: "/api/v1/genpdf/kronisk-soknad/kronisk-soknad" }],
+  ["kronisk-soeknad", { apiPath: "/api/v1/kronisk/soeknad", pdfgenPath: "/api/v1/genpdf/kronisk-soknad/kronisk-soknad" }],
   ["kronisk-krav", { apiPath: "/api/v1/kronisk/krav", pdfgenPath: "/api/v1/genpdf/kronisk-krav/kronisk-krav" }],
 ]);
 const BASE_PATH = "/dokument";
