@@ -161,8 +161,9 @@ async function handleFritakagpPdf(req, res, token, dokumentType, dokumentId) {
     return res.redirect(`${BASE_PATH}/feilmelding`);
   }
 
+  const sikkerDokumentId = encodeURIComponent(dokumentId);
   const jsonResponse = await fetch(
-    `${FRITAKAGP_API_BASEPATH}${config.apiPath}/${dokumentId}`,
+    `${FRITAKAGP_API_BASEPATH}${config.apiPath}/${sikkerDokumentId}`,
     {
       method: "GET",
       headers: {
