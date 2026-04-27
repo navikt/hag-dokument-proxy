@@ -161,9 +161,10 @@ async function handleFritakagpPdf(req, res, token, dokumentType, dokumentId) {
     return res.redirect(`${BASE_PATH}/feilmelding`);
   }
 
-  const sikkerDokumentId = encodeURIComponent(dokumentId);
+  const fritakagpUrl = `${FRITAKAGP_API_BASEPATH}${config.apiPath}/${encodeURIComponent(dokumentId)}`;
+  logger.info(`Henter fritakagp-data fra ${fritakagpUrl}`);
   const jsonResponse = await fetch(
-    `${FRITAKAGP_API_BASEPATH}${config.apiPath}/${sikkerDokumentId}`,
+    fritakagpUrl,
     {
       method: "GET",
       headers: {
@@ -175,7 +176,7 @@ async function handleFritakagpPdf(req, res, token, dokumentType, dokumentId) {
 
   if (!jsonResponse.ok) {
     logger.error(
-      `Feil ved henting av fritakagp-data: ${jsonResponse.status} ${jsonResponse.statusText}`,
+      `Feil ved henting av fritakagp-data fra ${fritakagpUrl}: ${jsonResponse.status} ${jsonResponse.statusText}`,
     );
     if (jsonResponse.status === 404) return res.redirect(`${BASE_PATH}/404`);
     if (jsonResponse.status === 403) return res.redirect(`${BASE_PATH}/403`);
