@@ -1,16 +1,21 @@
 import express from "express";
-import { getToken, validateToken, requestOboToken } from "@navikt/oasis";
+import { getToken, validateToken } from "@navikt/oasis";
 import { fileURLToPath } from "node:url";
 import { Readable } from "node:stream";
 import { logger } from "@navikt/pino-logger";
 import { validate } from "uuid";
+import {
+  hentSykepengerDokument,
+  isSykepengerType,
+} from "./hentSykepengerDokument.js";
+import {
+  hentFritakagpDokument,
+  isFritakagpType,
+} from "./hentFritakagpDokument.js";
 
 const app = express();
 app.disable("x-powered-by");
 
-const API_BASEPATH = process.env.API_BASEPATH || "";
-const AUDIENCE = process.env.AUDIENCE || "";
-const GYLDIG_TYPE = new Set(["sykmelding", "sykepengesoeknad"]);
 const BASE_PATH = "/dokument";
 let decoratorModulePromise;
 
@@ -23,12 +28,11 @@ function getDecoratorEnv() {
 
 async function getDecoratorModule() {
   if (!decoratorModulePromise) {
-    decoratorModulePromise = import(
-      "@navikt/nav-dekoratoren-moduler/ssr/index.js",
-    ).catch((error) => {
-      decoratorModulePromise = undefined;
-      throw error;
-    });
+    decoratorModulePromise =
+      import("@navikt/nav-dekoratoren-moduler/ssr/index.js").catch((error) => {
+        decoratorModulePromise = undefined;
+        throw error;
+      });
   }
   return decoratorModulePromise;
 }
@@ -46,14 +50,16 @@ async function renderDecoratedPage(res, filePath, statusCode = 200) {
     res.status(statusCode).send(html);
   } catch (error) {
     logger.error("Server: SSR error, falling back to plain HTML", error);
-    res.status(statusCode).sendFile(filePath, { root: process.cwd() }, (err) => {
-      if (err) {
-        logger.error("Server: sendFile error", err);
-        if (!res.headersSent) {
-          res.status(500).send("500 Error");
+    res
+      .status(statusCode)
+      .sendFile(filePath, { root: process.cwd() }, (err) => {
+        if (err) {
+          logger.error("Server: sendFile error", err);
+          if (!res.headersSent) {
+            res.status(500).send("500 Error");
+          }
         }
-      }
-    });
+      });
   }
 }
 
@@ -75,7 +81,7 @@ app.use(`${BASE_PATH}/ugyldig`, (_req, res) =>
 app.get(`${BASE_PATH}/:dokumentType/:dokumentId.pdf`, async (req, res) => {
   const { dokumentId, dokumentType } = req.params;
 
-  if (!GYLDIG_TYPE.has(dokumentType) || !dokumentId || !validate(dokumentId)) {
+  if (!dokumentId || !validate(dokumentId)) {
     return res.redirect(`${BASE_PATH}/ugyldig`);
   }
 
@@ -90,36 +96,25 @@ app.get(`${BASE_PATH}/:dokumentType/:dokumentId.pdf`, async (req, res) => {
     return res.redirect(`${BASE_PATH}/feilmelding`);
   }
 
-  const obo = await requestOboToken(token, AUDIENCE);
-  if (!obo.ok) {
-    logger.error(`Feil ved henting av OBO-token med audience ${AUDIENCE}`);
-    return res.redirect(`${BASE_PATH}/feilmelding`);
+  let result;
+  if (isSykepengerType(dokumentType)) {
+    result = await hentSykepengerDokument(token, dokumentType, dokumentId);
+  } else if (isFritakagpType(dokumentType)) {
+    result = await hentFritakagpDokument(token, dokumentType, dokumentId);
+  } else {
+    logger.error(`URL path mottatt med ugyldig dokumentType: ${dokumentType}`);
+    return res.redirect(`${BASE_PATH}/ugyldig`);
   }
 
-  const data = await fetch(
-    `${API_BASEPATH}/${dokumentType}/${dokumentId}/pdf`,
-    {
-      method: "GET",
-      headers: {
-        Accept: "application/pdf",
-        Authorization: `Bearer ${obo.token}`,
-      },
-    },
-  );
-
-  if (!data.ok) {
-    logger.error(
-      `Feil ved henting av dokument: ${data.status} ${data.statusText}`,
-    );
-    if (data.status === 404) return res.redirect(`${BASE_PATH}/404`);
-    if (data.status === 403) return res.redirect(`${BASE_PATH}/403`);
-    if (data.status === 401) return res.redirect(`${BASE_PATH}/403`);
-    return res.redirect(`${BASE_PATH}/feilmelding`);
+  if (!result.ok) {
+    return res.redirect(`${BASE_PATH}${result.redirect}`);
   }
+
+  const { data } = result;
 
   logger.info(`Serverer dokument ${dokumentType}-${dokumentId}.pdf`);
 
-  res.status(data.status);
+  res.status(200);
   res.contentType("application/pdf");
   res.setHeader(
     "Content-Disposition",

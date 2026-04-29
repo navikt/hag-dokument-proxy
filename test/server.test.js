@@ -28,7 +28,16 @@ vi.mock("@navikt/oasis", () => ({
 
 const SYKMELDING_PATH =
   "/dokument/sykmelding/550e8400-e29b-41d4-a716-446655440000.pdf";
-const SOKNAD_PATH = "/dokument/sykepengesoeknad/550e8400-e29b-41d4-a716-446655440000.pdf";
+const SOKNAD_PATH =
+  "/dokument/sykepengesoeknad/550e8400-e29b-41d4-a716-446655440000.pdf";
+const GRAVID_SOKNAD_PATH =
+  "/dokument/gravid-soeknad/550e8400-e29b-41d4-a716-446655440000.pdf";
+const GRAVID_KRAV_PATH =
+  "/dokument/gravid-krav/550e8400-e29b-41d4-a716-446655440000.pdf";
+const KRONISK_SOKNAD_PATH =
+  "/dokument/kronisk-soeknad/550e8400-e29b-41d4-a716-446655440000.pdf";
+const KRONISK_KRAV_PATH =
+  "/dokument/kronisk-krav/550e8400-e29b-41d4-a716-446655440000.pdf";
 const DOKUMENT_ID = "550e8400-e29b-41d4-a716-446655440000";
 
 function mockFetch({ ok = true, status = 200, contentLength = null } = {}) {
@@ -46,6 +55,51 @@ function mockFetch({ ok = true, status = 200, contentLength = null } = {}) {
         body,
       });
     }),
+  );
+}
+
+function mockJsonResponse({ ok = true, status = 200 } = {}) {
+  return Promise.resolve({
+    ok,
+    status,
+    statusText: String(status),
+    headers: new Headers({ "content-type": "application/json" }),
+    json: () => Promise.resolve({ navn: "Test Person" }),
+  });
+}
+
+function mockPdfResponse({
+  ok = true,
+  status = 200,
+  contentLength = null,
+} = {}) {
+  const headers = new Headers();
+  if (contentLength) headers.set("content-length", String(contentLength));
+  const body = Readable.toWeb(Readable.from(Buffer.from("%PDF-test")));
+  return Promise.resolve({
+    ok,
+    status,
+    statusText: String(status),
+    headers,
+    body,
+  });
+}
+
+function mockFritakagpFetch({
+  jsonOk = true,
+  jsonStatus = 200,
+  pdfOk = true,
+  pdfStatus = 200,
+  contentLength = null,
+} = {}) {
+  vi.stubGlobal(
+    "fetch",
+    vi
+      .fn()
+      .mockReturnValueOnce(mockJsonResponse({ ok: jsonOk, status: jsonStatus }))
+      .mockReturnValueOnce(
+        mockPdfResponse({ ok: pdfOk, status: pdfStatus, contentLength }),
+      ),
   );
 }
 
@@ -148,6 +202,59 @@ describe("Server", () => {
     });
   });
 
+  describe("Fritakagp PDF-endepunkt", () => {
+    it.each([
+      ["gravid-soeknad", GRAVID_SOKNAD_PATH],
+      ["gravid-krav", GRAVID_KRAV_PATH],
+      ["kronisk-soeknad", KRONISK_SOKNAD_PATH],
+      ["kronisk-krav", KRONISK_KRAV_PATH],
+    ])("skal returnere PDF for %s", async (type, path) => {
+      mockFritakagpFetch();
+      const response = await request(app).get(path).expect(200);
+      expect(response.headers["content-type"]).toContain("application/pdf");
+      expect(response.headers["content-disposition"]).toBe(
+        `inline; filename="${type}-${DOKUMENT_ID}.pdf"`,
+      );
+    });
+
+    it("skal gjøre to fetch-kall (JSON + pdfgen) for fritakagp", async () => {
+      mockFritakagpFetch();
+      await request(app).get(GRAVID_SOKNAD_PATH).expect(200);
+      expect(fetch).toHaveBeenCalledTimes(2);
+    });
+
+    it("skal redirecte til /404 når fritakagp API returnerer 404", async () => {
+      mockFritakagpFetch({ jsonOk: false, jsonStatus: 404 });
+      const response = await request(app).get(GRAVID_SOKNAD_PATH).expect(302);
+      expect(response.headers.location).toBe("/dokument/404");
+    });
+
+    it("skal redirecte til /403 når fritakagp API returnerer 403", async () => {
+      mockFritakagpFetch({ jsonOk: false, jsonStatus: 403 });
+      const response = await request(app).get(GRAVID_KRAV_PATH).expect(302);
+      expect(response.headers.location).toBe("/dokument/403");
+    });
+
+    it("skal redirecte til /feilmelding når pdfgen feiler", async () => {
+      mockFritakagpFetch({ pdfOk: false, pdfStatus: 500 });
+      const response = await request(app).get(KRONISK_SOKNAD_PATH).expect(302);
+      expect(response.headers.location).toBe("/dokument/feilmelding");
+    });
+
+    it("skal redirecte til /feilmelding når OBO-token for fritakagp feiler", async () => {
+      vi.mocked(requestOboToken).mockResolvedValueOnce({ ok: false });
+      const response = await request(app).get(KRONISK_KRAV_PATH).expect(302);
+      expect(response.headers.location).toBe("/dokument/feilmelding");
+    });
+
+    it("skal videresende Content-Length fra pdfgen", async () => {
+      const body = Buffer.from("%PDF-test");
+      mockFritakagpFetch({ contentLength: body.length });
+      const response = await request(app).get(GRAVID_SOKNAD_PATH).expect(200);
+      expect(response.headers["content-length"]).toBe(String(body.length));
+    });
+  });
+
   describe("Feilsider", () => {
     it("skal returnere 404 for ukjente stier", async () => {
       const response = await request(app).get("/finnes-ikke");
@@ -155,9 +262,9 @@ describe("Server", () => {
     });
 
     it("skal falle tilbake til statisk HTML ved SSR-feil", async () => {
-      vi.mocked(decoratorModule.injectDecoratorServerSide).mockRejectedValueOnce(
-        new Error("SSR feilet"),
-      );
+      vi.mocked(
+        decoratorModule.injectDecoratorServerSide,
+      ).mockRejectedValueOnce(new Error("SSR feilet"));
       const response = await request(app).get("/dokument/feilmelding");
       expect(response.status).toBe(200);
     });
