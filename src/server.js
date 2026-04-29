@@ -4,8 +4,14 @@ import { fileURLToPath } from "node:url";
 import { Readable } from "node:stream";
 import { logger } from "@navikt/pino-logger";
 import { validate } from "uuid";
-import { hentSykmeldingDokument, isSykepengerType } from "./hentSykmeldingDokument.js";
-import { hentFritakagpDokument, isFritakagpType } from "./hentFritakagpDokument.js";
+import {
+  hentSykepengerDokument,
+  isSykepengerType,
+} from "./hentSykepengerDokument.js";
+import {
+  hentFritakagpDokument,
+  isFritakagpType,
+} from "./hentFritakagpDokument.js";
 
 const app = express();
 app.disable("x-powered-by");
@@ -22,12 +28,11 @@ function getDecoratorEnv() {
 
 async function getDecoratorModule() {
   if (!decoratorModulePromise) {
-    decoratorModulePromise = import(
-      "@navikt/nav-dekoratoren-moduler/ssr/index.js",
-    ).catch((error) => {
-      decoratorModulePromise = undefined;
-      throw error;
-    });
+    decoratorModulePromise =
+      import("@navikt/nav-dekoratoren-moduler/ssr/index.js").catch((error) => {
+        decoratorModulePromise = undefined;
+        throw error;
+      });
   }
   return decoratorModulePromise;
 }
@@ -45,14 +50,16 @@ async function renderDecoratedPage(res, filePath, statusCode = 200) {
     res.status(statusCode).send(html);
   } catch (error) {
     logger.error("Server: SSR error, falling back to plain HTML", error);
-    res.status(statusCode).sendFile(filePath, { root: process.cwd() }, (err) => {
-      if (err) {
-        logger.error("Server: sendFile error", err);
-        if (!res.headersSent) {
-          res.status(500).send("500 Error");
+    res
+      .status(statusCode)
+      .sendFile(filePath, { root: process.cwd() }, (err) => {
+        if (err) {
+          logger.error("Server: sendFile error", err);
+          if (!res.headersSent) {
+            res.status(500).send("500 Error");
+          }
         }
-      }
-    });
+      });
   }
 }
 
@@ -91,7 +98,7 @@ app.get(`${BASE_PATH}/:dokumentType/:dokumentId.pdf`, async (req, res) => {
 
   let result;
   if (isSykepengerType(dokumentType)) {
-    result = await hentSykmeldingDokument(token, dokumentType, dokumentId);
+    result = await hentSykepengerDokument(token, dokumentType, dokumentId);
   } else if (isFritakagpType(dokumentType)) {
     result = await hentFritakagpDokument(token, dokumentType, dokumentId);
   } else {
