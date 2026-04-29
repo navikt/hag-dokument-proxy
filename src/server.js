@@ -1,25 +1,16 @@
 import express from "express";
-import { getToken, validateToken, requestOboToken } from "@navikt/oasis";
+import { getToken, validateToken } from "@navikt/oasis";
 import { fileURLToPath } from "node:url";
 import { Readable } from "node:stream";
 import { logger } from "@navikt/pino-logger";
 import { validate } from "uuid";
+import { hentSykmeldingDokument } from "./hentSykmeldingDokument.js";
+import { hentFritakagpDokument, FRITAKAGP_TYPE } from "./hentFritakagpDokument.js";
 
 const app = express();
 app.disable("x-powered-by");
 
-const API_BASEPATH = process.env.API_BASEPATH || "";
-const AUDIENCE = process.env.AUDIENCE || "";
-const FRITAKAGP_API_BASEPATH = process.env.FRITAKAGP_API_BASEPATH || "";
-const FRITAKAGP_AUDIENCE = process.env.FRITAKAGP_AUDIENCE || "";
-const PDFGEN_BASEPATH = process.env.PDFGEN_BASEPATH || "";
 const GYLDIG_TYPE = new Set(["sykmelding", "sykepengesoeknad"]);
-const FRITAKAGP_TYPE = new Map([
-  ["gravid-soeknad", { apiPath: "/api/v1/gravid/soeknad", pdfgenPath: "/api/v1/genpdf/gravid-soknad/gravid-soknad" }],
-  ["gravid-krav", { apiPath: "/api/v1/gravid/krav", pdfgenPath: "/api/v1/genpdf/gravid-krav/gravid-krav" }],
-  ["kronisk-soeknad", { apiPath: "/api/v1/kronisk/soeknad", pdfgenPath: "/api/v1/genpdf/kronisk-soknad/kronisk-soknad" }],
-  ["kronisk-krav", { apiPath: "/api/v1/kronisk/krav", pdfgenPath: "/api/v1/genpdf/kronisk-krav/kronisk-krav" }],
-]);
 const BASE_PATH = "/dokument";
 let decoratorModulePromise;
 
@@ -88,9 +79,10 @@ app.get(`${BASE_PATH}/:dokumentType/:dokumentId.pdf`, async (req, res) => {
     return res.redirect(`${BASE_PATH}/ugyldig`);
   }
 
+  const isSykepenger = GYLDIG_TYPE.has(dokumentType);
   const isFritakagp = FRITAKAGP_TYPE.has(dokumentType);
 
-  if (!GYLDIG_TYPE.has(dokumentType) && !isFritakagp) {
+  if (!isSykepenger && !isFritakagp) {
     return res.redirect(`${BASE_PATH}/ugyldig`);
   }
 
@@ -105,40 +97,22 @@ app.get(`${BASE_PATH}/:dokumentType/:dokumentId.pdf`, async (req, res) => {
     return res.redirect(`${BASE_PATH}/feilmelding`);
   }
 
-  if (isFritakagp) {
-    return handleFritakagpPdf(req, res, token, dokumentType, dokumentId);
+  let result;
+  if (isSykepenger) {
+    result = await hentSykmeldingDokument(token, dokumentType, dokumentId);
+  } else if (isFritakagp) {
+    result = await hentFritakagpDokument(token, dokumentType, dokumentId);
   }
 
-  const obo = await requestOboToken(token, AUDIENCE);
-  if (!obo.ok) {
-    logger.error(`Feil ved henting av OBO-token med audience ${AUDIENCE}`);
-    return res.redirect(`${BASE_PATH}/feilmelding`);
+  if (!result.ok) {
+    return res.redirect(`${BASE_PATH}${result.redirect}`);
   }
 
-  const data = await fetch(
-    `${API_BASEPATH}/${dokumentType}/${dokumentId}/pdf`,
-    {
-      method: "GET",
-      headers: {
-        Accept: "application/pdf",
-        Authorization: `Bearer ${obo.token}`,
-      },
-    },
-  );
-
-  if (!data.ok) {
-    logger.error(
-      `Feil ved henting av dokument: ${data.status} ${data.statusText}`,
-    );
-    if (data.status === 404) return res.redirect(`${BASE_PATH}/404`);
-    if (data.status === 403) return res.redirect(`${BASE_PATH}/403`);
-    if (data.status === 401) return res.redirect(`${BASE_PATH}/403`);
-    return res.redirect(`${BASE_PATH}/feilmelding`);
-  }
+  const { data } = result;
 
   logger.info(`Serverer dokument ${dokumentType}-${dokumentId}.pdf`);
 
-  res.status(data.status);
+  res.status(data.status ?? 200);
   res.contentType("application/pdf");
   res.setHeader(
     "Content-Disposition",
@@ -151,72 +125,6 @@ app.get(`${BASE_PATH}/:dokumentType/:dokumentId.pdf`, async (req, res) => {
 
   Readable.fromWeb(data.body).pipe(res);
 });
-
-async function handleFritakagpPdf(req, res, token, dokumentType, dokumentId) {
-  const config = FRITAKAGP_TYPE.get(dokumentType);
-
-  const obo = await requestOboToken(token, FRITAKAGP_AUDIENCE);
-  if (!obo.ok) {
-    logger.error(`Feil ved henting av OBO-token med audience ${FRITAKAGP_AUDIENCE}: ${obo.error}`);
-    return res.redirect(`${BASE_PATH}/feilmelding`);
-  }
-
-  const fritakagpUrl = `${FRITAKAGP_API_BASEPATH}${config.apiPath}/${encodeURIComponent(dokumentId)}`;
-  logger.info(`Henter fritakagp-data fra ${fritakagpUrl}`);
-  const jsonResponse = await fetch(
-    fritakagpUrl,
-    {
-      method: "GET",
-      headers: {
-        Accept: "application/json",
-        Authorization: `Bearer ${obo.token}`,
-      },
-    },
-  );
-
-  if (!jsonResponse.ok) {
-    logger.error(
-      `Feil ved henting av fritakagp-data fra ${fritakagpUrl}: ${jsonResponse.status} ${jsonResponse.statusText}`,
-    );
-    if (jsonResponse.status === 404) return res.redirect(`${BASE_PATH}/404`);
-    if (jsonResponse.status === 403) return res.redirect(`${BASE_PATH}/403`);
-    if (jsonResponse.status === 401) return res.redirect(`${BASE_PATH}/403`);
-    return res.redirect(`${BASE_PATH}/feilmelding`);
-  }
-
-  const jsonData = await jsonResponse.json();
-
-  const pdfResponse = await fetch(
-    `${PDFGEN_BASEPATH}${config.pdfgenPath}`,
-    {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify(jsonData),
-    },
-  );
-
-  if (!pdfResponse.ok) {
-    logger.error(
-      `Feil ved generering av PDF fra pdfgen: ${pdfResponse.status} ${pdfResponse.statusText}`,
-    );
-    return res.redirect(`${BASE_PATH}/feilmelding`);
-  }
-
-  logger.info(`Serverer fritakagp-dokument ${dokumentType}-${dokumentId}.pdf`);
-
-  res.status(200);
-  res.contentType("application/pdf");
-  res.setHeader(
-    "Content-Disposition",
-    `inline; filename="${dokumentType}-${dokumentId}.pdf"`,
-  );
-
-  if (pdfResponse.headers.get("content-length")) {
-    res.setHeader("Content-Length", pdfResponse.headers.get("content-length"));
-  }
-
-  Readable.fromWeb(pdfResponse.body).pipe(res);
-}
 
 app.use((req, _res, next) => {
   logger.info("Server: Error 404", req.url);
