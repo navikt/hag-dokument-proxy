@@ -58,6 +58,33 @@ function mockFetch({ ok = true, status = 200, contentLength = null } = {}) {
   );
 }
 
+function mockJsonResponse({ ok = true, status = 200 } = {}) {
+  return Promise.resolve({
+    ok,
+    status,
+    statusText: String(status),
+    headers: new Headers({ "content-type": "application/json" }),
+    json: () => Promise.resolve({ navn: "Test Person" }),
+  });
+}
+
+function mockPdfResponse({
+  ok = true,
+  status = 200,
+  contentLength = null,
+} = {}) {
+  const headers = new Headers();
+  if (contentLength) headers.set("content-length", String(contentLength));
+  const body = Readable.toWeb(Readable.from(Buffer.from("%PDF-test")));
+  return Promise.resolve({
+    ok,
+    status,
+    statusText: String(status),
+    headers,
+    body,
+  });
+}
+
 function mockFritakagpFetch({
   jsonOk = true,
   jsonStatus = 200,
@@ -65,35 +92,14 @@ function mockFritakagpFetch({
   pdfStatus = 200,
   contentLength = null,
 } = {}) {
-  let callCount = 0;
   vi.stubGlobal(
     "fetch",
-    vi.fn(() => {
-      callCount++;
-      if (callCount === 1) {
-        // First call: fritakagp API returns JSON
-        const headers = new Headers();
-        headers.set("content-type", "application/json");
-        return Promise.resolve({
-          ok: jsonOk,
-          status: jsonStatus,
-          statusText: String(jsonStatus),
-          headers,
-          json: () => Promise.resolve({ navn: "Test Person" }),
-        });
-      }
-      // Second call: pdfgen returns PDF
-      const headers = new Headers();
-      if (contentLength) headers.set("content-length", String(contentLength));
-      const body = Readable.toWeb(Readable.from(Buffer.from("%PDF-test")));
-      return Promise.resolve({
-        ok: pdfOk,
-        status: pdfStatus,
-        statusText: String(pdfStatus),
-        headers,
-        body,
-      });
-    }),
+    vi
+      .fn()
+      .mockReturnValueOnce(mockJsonResponse({ ok: jsonOk, status: jsonStatus }))
+      .mockReturnValueOnce(
+        mockPdfResponse({ ok: pdfOk, status: pdfStatus, contentLength }),
+      ),
   );
 }
 
