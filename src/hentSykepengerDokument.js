@@ -1,5 +1,6 @@
 import { requestOboToken } from "@navikt/oasis";
 import { logger } from "@navikt/pino-logger";
+import { validate } from "uuid";
 
 const API_BASEPATH = process.env.API_BASEPATH || "";
 const AUDIENCE = process.env.AUDIENCE || "";
@@ -14,6 +15,11 @@ export function isSykepengerType(type) {
 
 export async function hentSykepengerDokument(token, dokumentType, dokumentId) {
   const path = SYKEPENGER_PATHS[dokumentType];
+
+  if (!validate(dokumentId)) {
+    return { ok: false, redirect: "/ugyldig" };
+  }
+
   const obo = await requestOboToken(token, AUDIENCE);
   if (!obo.ok) {
     logger.error(`Feil ved henting av OBO-token med audience ${AUDIENCE}`);
