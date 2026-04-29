@@ -3,8 +3,14 @@ import { logger } from "@navikt/pino-logger";
 
 const API_BASEPATH = process.env.API_BASEPATH || "";
 const AUDIENCE = process.env.AUDIENCE || "";
+const SYKEPENGER_PATHS = { sykmelding: "sykmelding", sykepengesoeknad: "sykepengesoeknad" };
+
+export function isSykepengerType(type) {
+  return type in SYKEPENGER_PATHS;
+}
 
 export async function hentSykmeldingDokument(token, dokumentType, dokumentId) {
+  const path = SYKEPENGER_PATHS[dokumentType];
   const obo = await requestOboToken(token, AUDIENCE);
   if (!obo.ok) {
     logger.error(`Feil ved henting av OBO-token med audience ${AUDIENCE}`);
@@ -12,7 +18,7 @@ export async function hentSykmeldingDokument(token, dokumentType, dokumentId) {
   }
 
   const data = await fetch(
-    `${API_BASEPATH}/${dokumentType}/${dokumentId}/pdf`,
+    `${API_BASEPATH}/${path}/${dokumentId}/pdf`,
     {
       method: "GET",
       headers: {

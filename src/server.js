@@ -4,13 +4,12 @@ import { fileURLToPath } from "node:url";
 import { Readable } from "node:stream";
 import { logger } from "@navikt/pino-logger";
 import { validate } from "uuid";
-import { hentSykmeldingDokument } from "./hentSykmeldingDokument.js";
+import { hentSykmeldingDokument, isSykepengerType } from "./hentSykmeldingDokument.js";
 import { hentFritakagpDokument, isFritakagpType } from "./hentFritakagpDokument.js";
 
 const app = express();
 app.disable("x-powered-by");
 
-const SYKEPENGER_TYPE = new Set(["sykmelding", "sykepengesoeknad"]);
 const BASE_PATH = "/dokument";
 let decoratorModulePromise;
 
@@ -79,13 +78,6 @@ app.get(`${BASE_PATH}/:dokumentType/:dokumentId.pdf`, async (req, res) => {
     return res.redirect(`${BASE_PATH}/ugyldig`);
   }
 
-  const isSykepenger = SYKEPENGER_TYPE.has(dokumentType);
-  const isFritakagp = isFritakagpType(dokumentType);
-
-  if (!isSykepenger && !isFritakagp) {
-    return res.redirect(`${BASE_PATH}/ugyldig`);
-  }
-
   const token = getToken(req);
   if (!token) {
     return res.redirect(`${BASE_PATH}/feilmelding`);
@@ -98,10 +90,13 @@ app.get(`${BASE_PATH}/:dokumentType/:dokumentId.pdf`, async (req, res) => {
   }
 
   let result;
-  if (isSykepenger) {
+  if (isSykepengerType(dokumentType)) {
     result = await hentSykmeldingDokument(token, dokumentType, dokumentId);
-  } else if (isFritakagp) {
+  } else if (isFritakagpType(dokumentType)) {
     result = await hentFritakagpDokument(token, dokumentType, dokumentId);
+  } else {
+    logger.error(`URL path mottatt med ugyldig dokumentType: ${dokumentType}`);
+    return res.redirect(`${BASE_PATH}/ugyldig`);
   }
 
   if (!result.ok) {
