@@ -28,11 +28,16 @@ vi.mock("@navikt/oasis", () => ({
 
 const SYKMELDING_PATH =
   "/dokument/sykmelding/550e8400-e29b-41d4-a716-446655440000.pdf";
-const SOKNAD_PATH = "/dokument/sykepengesoeknad/550e8400-e29b-41d4-a716-446655440000.pdf";
-const GRAVID_SOKNAD_PATH = "/dokument/gravid-soknad/550e8400-e29b-41d4-a716-446655440000.pdf";
-const GRAVID_KRAV_PATH = "/dokument/gravid-krav/550e8400-e29b-41d4-a716-446655440000.pdf";
-const KRONISK_SOKNAD_PATH = "/dokument/kronisk-soknad/550e8400-e29b-41d4-a716-446655440000.pdf";
-const KRONISK_KRAV_PATH = "/dokument/kronisk-krav/550e8400-e29b-41d4-a716-446655440000.pdf";
+const SOKNAD_PATH =
+  "/dokument/sykepengesoeknad/550e8400-e29b-41d4-a716-446655440000.pdf";
+const GRAVID_SOKNAD_PATH =
+  "/dokument/gravid-soeknad/550e8400-e29b-41d4-a716-446655440000.pdf";
+const GRAVID_KRAV_PATH =
+  "/dokument/gravid-krav/550e8400-e29b-41d4-a716-446655440000.pdf";
+const KRONISK_SOKNAD_PATH =
+  "/dokument/kronisk-soeknad/550e8400-e29b-41d4-a716-446655440000.pdf";
+const KRONISK_KRAV_PATH =
+  "/dokument/kronisk-krav/550e8400-e29b-41d4-a716-446655440000.pdf";
 const DOKUMENT_ID = "550e8400-e29b-41d4-a716-446655440000";
 
 function mockFetch({ ok = true, status = 200, contentLength = null } = {}) {
@@ -53,7 +58,13 @@ function mockFetch({ ok = true, status = 200, contentLength = null } = {}) {
   );
 }
 
-function mockFritakagpFetch({ jsonOk = true, jsonStatus = 200, pdfOk = true, pdfStatus = 200, contentLength = null } = {}) {
+function mockFritakagpFetch({
+  jsonOk = true,
+  jsonStatus = 200,
+  pdfOk = true,
+  pdfStatus = 200,
+  contentLength = null,
+} = {}) {
   let callCount = 0;
   vi.stubGlobal(
     "fetch",
@@ -187,9 +198,9 @@ describe("Server", () => {
 
   describe("Fritakagp PDF-endepunkt", () => {
     it.each([
-      ["gravid-soknad", GRAVID_SOKNAD_PATH],
+      ["gravid-soeknad", GRAVID_SOKNAD_PATH],
       ["gravid-krav", GRAVID_KRAV_PATH],
-      ["kronisk-soknad", KRONISK_SOKNAD_PATH],
+      ["kronisk-soeknad", KRONISK_SOKNAD_PATH],
       ["kronisk-krav", KRONISK_KRAV_PATH],
     ])("skal returnere PDF for %s", async (type, path) => {
       mockFritakagpFetch();
@@ -245,9 +256,9 @@ describe("Server", () => {
     });
 
     it("skal falle tilbake til statisk HTML ved SSR-feil", async () => {
-      vi.mocked(decoratorModule.injectDecoratorServerSide).mockRejectedValueOnce(
-        new Error("SSR feilet"),
-      );
+      vi.mocked(
+        decoratorModule.injectDecoratorServerSide,
+      ).mockRejectedValueOnce(new Error("SSR feilet"));
       const response = await request(app).get("/dokument/feilmelding");
       expect(response.status).toBe(200);
     });
