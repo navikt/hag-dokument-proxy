@@ -12,7 +12,9 @@ const FRITAKAGP_TYPE = new Map([
   ["kronisk-krav", { apiPath: "/api/v1/kronisk/krav", pdfgenPath: "/api/v1/genpdf/fritakagp/kronisk-krav" }],
 ]);
 
-export { FRITAKAGP_TYPE };
+export function isFritakagpType(type) {
+  return FRITAKAGP_TYPE.has(type);
+}
 
 export async function hentFritakagpDokument(token, dokumentType, dokumentId) {
   const config = FRITAKAGP_TYPE.get(dokumentType);

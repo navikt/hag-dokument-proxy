@@ -5,12 +5,12 @@ import { Readable } from "node:stream";
 import { logger } from "@navikt/pino-logger";
 import { validate } from "uuid";
 import { hentSykmeldingDokument } from "./hentSykmeldingDokument.js";
-import { hentFritakagpDokument, FRITAKAGP_TYPE } from "./hentFritakagpDokument.js";
+import { hentFritakagpDokument, isFritakagpType } from "./hentFritakagpDokument.js";
 
 const app = express();
 app.disable("x-powered-by");
 
-const GYLDIG_TYPE = new Set(["sykmelding", "sykepengesoeknad"]);
+const SYKEPENGER_TYPE = new Set(["sykmelding", "sykepengesoeknad"]);
 const BASE_PATH = "/dokument";
 let decoratorModulePromise;
 
@@ -79,8 +79,8 @@ app.get(`${BASE_PATH}/:dokumentType/:dokumentId.pdf`, async (req, res) => {
     return res.redirect(`${BASE_PATH}/ugyldig`);
   }
 
-  const isSykepenger = GYLDIG_TYPE.has(dokumentType);
-  const isFritakagp = FRITAKAGP_TYPE.has(dokumentType);
+  const isSykepenger = SYKEPENGER_TYPE.has(dokumentType);
+  const isFritakagp = isFritakagpType(dokumentType);
 
   if (!isSykepenger && !isFritakagp) {
     return res.redirect(`${BASE_PATH}/ugyldig`);
@@ -112,7 +112,7 @@ app.get(`${BASE_PATH}/:dokumentType/:dokumentId.pdf`, async (req, res) => {
 
   logger.info(`Serverer dokument ${dokumentType}-${dokumentId}.pdf`);
 
-  res.status(data.status ?? 200);
+  res.status(200);
   res.contentType("application/pdf");
   res.setHeader(
     "Content-Disposition",
