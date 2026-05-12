@@ -17,7 +17,7 @@ const FRITAKAGP_TYPE = new Map([
   [
     "gravid-krav",
     {
-      apiPath: "/api/v1/gravid/krav",
+      apiPath: "/api/v1/gravid/krav/dokument",
       pdfgenPath: "/api/v1/genpdf/fritakagp/gravid-krav",
     },
   ],
@@ -31,7 +31,7 @@ const FRITAKAGP_TYPE = new Map([
   [
     "kronisk-krav",
     {
-      apiPath: "/api/v1/kronisk/krav",
+      apiPath: "/api/v1/kronisk/krav/dokument",
       pdfgenPath: "/api/v1/genpdf/fritakagp/kronisk-krav",
     },
   ],
