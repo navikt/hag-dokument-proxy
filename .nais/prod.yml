@@ -27,6 +27,10 @@ spec:
           namespace: personbruker
         - application: sykepenger-im-lps-api
           namespace: helsearbeidsgiver
+        - application: fritakagp
+          namespace: helsearbeidsgiver
+        - application: helsearbeidsgiver-pdfgen
+          namespace: helsearbeidsgiver
   resources:
     limits:
       memory: 256Mi
