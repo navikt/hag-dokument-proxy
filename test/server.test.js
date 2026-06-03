@@ -235,8 +235,28 @@ describe("Server", () => {
       expect(response.headers.location).toBe("/dokument/403");
     });
 
-    it("skal redirecte til /feilmelding når pdfgen feiler", async () => {
-      mockFritakagpFetch({ pdfOk: false, pdfStatus: 500 });
+    it("skal returnere PDF når pdfgen feiler første gang men lykkes på retry", async () => {
+      vi.stubGlobal(
+        "fetch",
+        vi
+          .fn()
+          .mockReturnValueOnce(mockJsonResponse())
+          .mockReturnValueOnce(mockPdfResponse({ ok: false, status: 500 }))
+          .mockReturnValueOnce(mockPdfResponse()),
+      );
+      const response = await request(app).get(KRONISK_SOKNAD_PATH).expect(200);
+      expect(response.headers["content-type"]).toContain("application/pdf");
+    });
+
+    it("skal redirecte til /feilmelding når pdfgen feiler 2 ganger", async () => {
+      vi.stubGlobal(
+        "fetch",
+        vi
+          .fn()
+          .mockReturnValueOnce(mockJsonResponse())
+          .mockReturnValueOnce(mockPdfResponse({ ok: false, status: 500 }))
+          .mockReturnValueOnce(mockPdfResponse({ ok: false, status: 500 })),
+      );
       const response = await request(app).get(KRONISK_SOKNAD_PATH).expect(302);
       expect(response.headers.location).toBe("/dokument/feilmelding");
     });
