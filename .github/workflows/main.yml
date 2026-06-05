@@ -30,7 +30,7 @@ jobs:
         with:
           team: helsearbeidsgiver
       - name: Deploy to Nais
-        uses: nais/deploy/actions/deploy@fa754451577294aae42872a69b888b3470478ec1
+        uses: nais/deploy/actions/deploy@0f6c1b941dfd516632d7ac5b85c87b3d884338eb
         env:
           CLUSTER: dev-gcp
           RESOURCE: .nais/dev.yml
