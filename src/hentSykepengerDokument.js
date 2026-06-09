@@ -23,7 +23,7 @@ export async function hentSykepengerDokument(token, dokumentType, dokumentId) {
   const obo = await requestOboToken(token, AUDIENCE);
   if (!obo.ok) {
     logger.error(`Feil ved henting av OBO-token med audience ${AUDIENCE}`);
-    return { ok: false, redirect: "/feilmelding" };
+    return { ok: false, redirect: "/feilmelding?grunn=obo-feil" };
   }
 
   const data = await fetch(`${API_BASEPATH}/${path}/${dokumentId}/pdf`, {
@@ -41,7 +41,7 @@ export async function hentSykepengerDokument(token, dokumentType, dokumentId) {
     if (data.status === 404) return { ok: false, redirect: "/404" };
     if (data.status === 403) return { ok: false, redirect: "/403" };
     if (data.status === 401) return { ok: false, redirect: "/403" };
-    return { ok: false, redirect: "/feilmelding" };
+    return { ok: false, redirect: "/feilmelding?grunn=api-feil" };
   }
 
   return { ok: true, data };

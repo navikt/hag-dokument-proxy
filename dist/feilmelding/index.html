@@ -8,8 +8,24 @@
   </head>
   <body>
     <div class="container">
-      <h1>Feilmelding</h1>
-      <p>Det skjedde en feil. Prøv igjen senere.</p>
+      <h1>Noe gikk galt</h1>
+      <p id="beskrivelse">Det skjedde en uventet feil. Prøv igjen senere.</p>
     </div>
+    <script>
+      const beskrivelser = {
+        "ingen-token":
+          "Du er ikke innlogget. Last siden på nytt eller logg inn på nytt og prøv igjen.",
+        "ugyldig-token":
+          "Innloggingen din er utløpt. Logg inn på nytt og prøv igjen.",
+        "obo-feil":
+          "Vi kunne ikke verifisere tilgangen din. Prøv igjen om litt, eller logg inn på nytt.",
+        "api-feil":
+          "Vi fikk ikke hentet dokumentet fra tjenesten. Prøv igjen om litt.",
+        "pdfgen-feil": "Vi fikk ikke generert PDF-en. Prøv igjen om litt.",
+      };
+      const grunn = new URLSearchParams(window.location.search).get("grunn");
+      const el = document.getElementById("beskrivelse");
+      if (grunn && beskrivelser[grunn]) el.textContent = beskrivelser[grunn];
+    </script>
   </body>
 </html>

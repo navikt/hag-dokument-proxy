@@ -82,18 +82,18 @@ app.get(`${BASE_PATH}/:dokumentType/:dokumentId.pdf`, async (req, res) => {
   const { dokumentId, dokumentType } = req.params;
 
   if (!dokumentId || !validate(dokumentId)) {
-    return res.redirect(`${BASE_PATH}/ugyldig`);
+    return res.redirect(`${BASE_PATH}/ugyldig?grunn=ugyldig-id`);
   }
 
   const token = getToken(req);
   if (!token) {
-    return res.redirect(`${BASE_PATH}/feilmelding`);
+    return res.redirect(`${BASE_PATH}/feilmelding?grunn=ingen-token`);
   }
 
   const validation = await validateToken(token);
   if (!validation.ok) {
     logger.error("Ugyldig token");
-    return res.redirect(`${BASE_PATH}/feilmelding`);
+    return res.redirect(`${BASE_PATH}/feilmelding?grunn=ugyldig-token`);
   }
 
   let result;
@@ -103,7 +103,7 @@ app.get(`${BASE_PATH}/:dokumentType/:dokumentId.pdf`, async (req, res) => {
     result = await hentFritakagpDokument(token, dokumentType, dokumentId);
   } else {
     logger.error(`URL path mottatt med ugyldig dokumentType: ${dokumentType}`);
-    return res.redirect(`${BASE_PATH}/ugyldig`);
+    return res.redirect(`${BASE_PATH}/ugyldig?grunn=ugyldig-type`);
   }
 
   if (!result.ok) {

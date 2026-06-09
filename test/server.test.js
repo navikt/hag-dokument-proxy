@@ -154,33 +154,43 @@ describe("Server", () => {
     it("skal redirecte til /feilmelding når token mangler", async () => {
       vi.mocked(getToken).mockReturnValueOnce(null);
       const response = await request(app).get(SYKMELDING_PATH).expect(302);
-      expect(response.headers.location).toBe("/dokument/feilmelding");
+      expect(response.headers.location).toBe(
+        "/dokument/feilmelding?grunn=ingen-token",
+      );
     });
 
     it("skal redirecte til /feilmelding når token er ugyldig", async () => {
       vi.mocked(validateToken).mockResolvedValueOnce({ ok: false });
       const response = await request(app).get(SYKMELDING_PATH).expect(302);
-      expect(response.headers.location).toBe("/dokument/feilmelding");
+      expect(response.headers.location).toBe(
+        "/dokument/feilmelding?grunn=ugyldig-token",
+      );
     });
 
     it("skal redirecte til /feilmelding når OBO-token feiler", async () => {
       vi.mocked(requestOboToken).mockResolvedValueOnce({ ok: false });
       const response = await request(app).get(SYKMELDING_PATH).expect(302);
-      expect(response.headers.location).toBe("/dokument/feilmelding");
+      expect(response.headers.location).toBe(
+        "/dokument/feilmelding?grunn=obo-feil",
+      );
     });
 
     it("skal redirecte til /ugyldig når dokumentType er ugyldig", async () => {
       const response = await request(app)
         .get("/dokument/ukjent-type/550e8400-e29b-41d4-a716-446655440000.pdf")
         .expect(302);
-      expect(response.headers.location).toBe("/dokument/ugyldig");
+      expect(response.headers.location).toBe(
+        "/dokument/ugyldig?grunn=ugyldig-type",
+      );
     });
 
     it("skal redirecte til /ugyldig når dokumentId ikke er en gyldig UUID", async () => {
       const response = await request(app)
         .get("/dokument/sykmelding/ikke-en-uuid.pdf")
         .expect(302);
-      expect(response.headers.location).toBe("/dokument/ugyldig");
+      expect(response.headers.location).toBe(
+        "/dokument/ugyldig?grunn=ugyldig-id",
+      );
     });
 
     it("skal redirecte til /404 når upstream returnerer 404", async () => {
@@ -198,7 +208,9 @@ describe("Server", () => {
     it("skal redirecte til /feilmelding ved annen upstream-feil", async () => {
       mockFetch({ ok: false, status: 500 });
       const response = await request(app).get(SYKMELDING_PATH).expect(302);
-      expect(response.headers.location).toBe("/dokument/feilmelding");
+      expect(response.headers.location).toBe(
+        "/dokument/feilmelding?grunn=api-feil",
+      );
     });
   });
 
@@ -258,13 +270,17 @@ describe("Server", () => {
           .mockReturnValueOnce(mockPdfResponse({ ok: false, status: 500 })),
       );
       const response = await request(app).get(KRONISK_SOKNAD_PATH).expect(302);
-      expect(response.headers.location).toBe("/dokument/feilmelding");
+      expect(response.headers.location).toBe(
+        "/dokument/feilmelding?grunn=pdfgen-feil",
+      );
     });
 
     it("skal redirecte til /feilmelding når OBO-token for fritakagp feiler", async () => {
       vi.mocked(requestOboToken).mockResolvedValueOnce({ ok: false });
       const response = await request(app).get(KRONISK_KRAV_PATH).expect(302);
-      expect(response.headers.location).toBe("/dokument/feilmelding");
+      expect(response.headers.location).toBe(
+        "/dokument/feilmelding?grunn=obo-feil",
+      );
     });
 
     it("skal videresende Content-Length fra pdfgen", async () => {

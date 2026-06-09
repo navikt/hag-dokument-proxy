@@ -8,11 +8,21 @@
   </head>
   <body>
     <div class="container">
-      <h1>Ugyldig dokument</h1>
-      <p>
-        Du har prøvd å finne et dokument som ikke finnes eller som du ikke har
-        tilgang til.
+      <h1>Ugyldig lenke</h1>
+      <p id="beskrivelse">
+        Lenken du brukte er ugyldig. Sjekk at du har kopiert hele lenken riktig.
       </p>
     </div>
+    <script>
+      const beskrivelser = {
+        "ugyldig-id":
+          "Dokument-ID-en i lenken er ikke i forventet format. Sjekk at du har kopiert hele lenken riktig.",
+        "ugyldig-type":
+          "Dokumenttypen i lenken er ukjent. Sjekk at du har kopiert hele lenken riktig.",
+      };
+      const grunn = new URLSearchParams(window.location.search).get("grunn");
+      const el = document.getElementById("beskrivelse");
+      if (grunn && beskrivelser[grunn]) el.textContent = beskrivelser[grunn];
+    </script>
   </body>
 </html>
