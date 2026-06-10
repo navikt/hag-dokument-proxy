@@ -12,6 +12,7 @@ import {
   hentFritakagpDokument,
   isFritakagpType,
 } from "./hentFritakagpDokument.js";
+import errors from "./errors.js";
 
 const app = express();
 app.disable("x-powered-by");
@@ -65,6 +66,8 @@ async function renderDecoratedPage(res, filePath, statusCode = 200) {
 
 app.use(`${BASE_PATH}/assets`, express.static("dist/assets"));
 
+app.get(`${BASE_PATH}/errors.json`, (_req, res) => res.json(errors));
+
 app.use(`${BASE_PATH}/feilmelding`, (_req, res) =>
   renderDecoratedPage(res, "dist/feilmelding/index.html"),
 );
@@ -82,18 +85,22 @@ app.get(`${BASE_PATH}/:dokumentType/:dokumentId.pdf`, async (req, res) => {
   const { dokumentId, dokumentType } = req.params;
 
   if (!dokumentId || !validate(dokumentId)) {
-    return res.redirect(`${BASE_PATH}/ugyldig?grunn=ugyldig-id`);
+    return res.redirect(`${BASE_PATH}/ugyldig`);
   }
 
   const token = getToken(req);
   if (!token) {
-    return res.redirect(`${BASE_PATH}/feilmelding?grunn=ingen-token`);
+    return res.redirect(
+      `${BASE_PATH}/feilmelding?grunn=${errors.IKKE_INNLOGGET.grunn}`,
+    );
   }
 
   const validation = await validateToken(token);
   if (!validation.ok) {
     logger.error("Ugyldig token");
-    return res.redirect(`${BASE_PATH}/feilmelding?grunn=ugyldig-token`);
+    return res.redirect(
+      `${BASE_PATH}/feilmelding?grunn=${errors.SESJON_UTLOPT.grunn}`,
+    );
   }
 
   let result;
@@ -103,7 +110,7 @@ app.get(`${BASE_PATH}/:dokumentType/:dokumentId.pdf`, async (req, res) => {
     result = await hentFritakagpDokument(token, dokumentType, dokumentId);
   } else {
     logger.error(`URL path mottatt med ugyldig dokumentType: ${dokumentType}`);
-    return res.redirect(`${BASE_PATH}/ugyldig?grunn=ugyldig-type`);
+    return res.redirect(`${BASE_PATH}/ugyldig`);
   }
 
   if (!result.ok) {

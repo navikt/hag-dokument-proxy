@@ -9,23 +9,20 @@
   <body>
     <div class="container">
       <h1>Noe gikk galt</h1>
-      <p id="beskrivelse">Det skjedde en uventet feil. Prøv igjen senere.</p>
+      <p id="beskrivelse">Det har oppstått en feil. Prøv igjen om litt.</p>
     </div>
     <script>
-      const beskrivelser = {
-        "ingen-token":
-          "Du er ikke innlogget. Last siden på nytt eller logg inn på nytt og prøv igjen.",
-        "ugyldig-token":
-          "Innloggingen din er utløpt. Logg inn på nytt og prøv igjen.",
-        "obo-feil":
-          "Vi kunne ikke verifisere tilgangen din. Prøv igjen om litt, eller logg inn på nytt.",
-        "api-feil":
-          "Vi fikk ikke hentet dokumentet fra tjenesten. Prøv igjen om litt.",
-        "pdfgen-feil": "Vi fikk ikke generert PDF-en. Prøv igjen om litt.",
-      };
-      const grunn = new URLSearchParams(window.location.search).get("grunn");
-      const el = document.getElementById("beskrivelse");
-      if (grunn && beskrivelser[grunn]) el.textContent = beskrivelser[grunn];
+      fetch("/dokument/errors.json")
+        .then((r) => r.json())
+        .then((errors) => {
+          const grunn = new URLSearchParams(window.location.search).get(
+            "grunn",
+          );
+          const match = Object.values(errors).find((e) => e.grunn === grunn);
+          if (match)
+            document.getElementById("beskrivelse").textContent =
+              match.beskrivelse;
+        });
     </script>
   </body>
 </html>

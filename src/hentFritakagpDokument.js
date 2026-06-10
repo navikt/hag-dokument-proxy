@@ -1,6 +1,7 @@
 import { requestOboToken } from "@navikt/oasis";
 import { logger } from "@navikt/pino-logger";
 import { validate } from "uuid";
+import errors from "./errors.js";
 import { hentFraPdfgen } from "./pdfgen.js";
 
 const FRITAKAGP_API_BASEPATH = process.env.FRITAKAGP_API_BASEPATH || "";
@@ -53,7 +54,10 @@ export async function hentFritakagpDokument(token, dokumentType, dokumentId) {
     logger.error(
       `Feil ved henting av OBO-token med audience ${FRITAKAGP_AUDIENCE}: ${obo.error}`,
     );
-    return { ok: false, redirect: "/feilmelding?grunn=obo-feil" };
+    return {
+      ok: false,
+      redirect: `/feilmelding?grunn=${errors.TEKNISK_FEIL.grunn}`,
+    };
   }
 
   const fritakagpUrl = `${FRITAKAGP_API_BASEPATH}${config.apiPath}/${encodeURIComponent(dokumentId)}`;
@@ -73,7 +77,10 @@ export async function hentFritakagpDokument(token, dokumentType, dokumentId) {
     if (jsonResponse.status === 404) return { ok: false, redirect: "/404" };
     if (jsonResponse.status === 403) return { ok: false, redirect: "/403" };
     if (jsonResponse.status === 401) return { ok: false, redirect: "/403" };
-    return { ok: false, redirect: "/feilmelding?grunn=api-feil" };
+    return {
+      ok: false,
+      redirect: `/feilmelding?grunn=${errors.TEKNISK_FEIL.grunn}`,
+    };
   }
 
   const jsonData = await jsonResponse.json();
@@ -84,7 +91,10 @@ export async function hentFritakagpDokument(token, dokumentType, dokumentId) {
     logger.error(
       `Feil ved henting av PDF fra pdfgen for ${dokumentType} med ID ${dokumentId}: ${pdfResponse.status} ${pdfResponse.statusText}`,
     );
-    return { ok: false, redirect: "/feilmelding?grunn=pdfgen-feil" };
+    return {
+      ok: false,
+      redirect: `/feilmelding?grunn=${errors.TEKNISK_FEIL.grunn}`,
+    };
   }
 
   return { ok: true, data: pdfResponse };
