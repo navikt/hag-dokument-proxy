@@ -155,7 +155,7 @@ describe("Server", () => {
       vi.mocked(getToken).mockReturnValueOnce(null);
       const response = await request(app).get(SYKMELDING_PATH).expect(302);
       expect(response.headers.location).toBe(
-        "/dokument/feilmelding?grunn=ikke-innlogget",
+        "/dokument/feilmelding?grunn=sesjon-feil",
       );
     });
 
@@ -163,7 +163,7 @@ describe("Server", () => {
       vi.mocked(validateToken).mockResolvedValueOnce({ ok: false });
       const response = await request(app).get(SYKMELDING_PATH).expect(302);
       expect(response.headers.location).toBe(
-        "/dokument/feilmelding?grunn=sesjon-utlopt",
+        "/dokument/feilmelding?grunn=sesjon-feil",
       );
     });
 

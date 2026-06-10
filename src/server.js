@@ -12,7 +12,6 @@ import {
   hentFritakagpDokument,
   isFritakagpType,
 } from "./hentFritakagpDokument.js";
-import errors from "./errors.js";
 
 const app = express();
 app.disable("x-powered-by");
@@ -66,8 +65,6 @@ async function renderDecoratedPage(res, filePath, statusCode = 200) {
 
 app.use(`${BASE_PATH}/assets`, express.static("dist/assets"));
 
-app.get(`${BASE_PATH}/errors.json`, (_req, res) => res.json(errors));
-
 app.use(`${BASE_PATH}/feilmelding`, (_req, res) =>
   renderDecoratedPage(res, "dist/feilmelding/index.html"),
 );
@@ -90,17 +87,13 @@ app.get(`${BASE_PATH}/:dokumentType/:dokumentId.pdf`, async (req, res) => {
 
   const token = getToken(req);
   if (!token) {
-    return res.redirect(
-      `${BASE_PATH}/feilmelding?grunn=${errors.IKKE_INNLOGGET.grunn}`,
-    );
+    return res.redirect(`${BASE_PATH}/feilmelding?grunn=sesjon-feil`);
   }
 
   const validation = await validateToken(token);
   if (!validation.ok) {
     logger.error("Ugyldig token");
-    return res.redirect(
-      `${BASE_PATH}/feilmelding?grunn=${errors.SESJON_UTLOPT.grunn}`,
-    );
+    return res.redirect(`${BASE_PATH}/feilmelding?grunn=sesjon-feil`);
   }
 
   let result;

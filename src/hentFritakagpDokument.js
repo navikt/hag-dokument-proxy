@@ -1,7 +1,6 @@
 import { requestOboToken } from "@navikt/oasis";
 import { logger } from "@navikt/pino-logger";
 import { validate } from "uuid";
-import errors from "./errors.js";
 import { hentFraPdfgen } from "./pdfgen.js";
 
 const FRITAKAGP_API_BASEPATH = process.env.FRITAKAGP_API_BASEPATH || "";
@@ -56,7 +55,7 @@ export async function hentFritakagpDokument(token, dokumentType, dokumentId) {
     );
     return {
       ok: false,
-      redirect: `/feilmelding?grunn=${errors.TEKNISK_FEIL.grunn}`,
+      redirect: "/feilmelding?grunn=teknisk-feil",
     };
   }
 
@@ -79,7 +78,7 @@ export async function hentFritakagpDokument(token, dokumentType, dokumentId) {
     if (jsonResponse.status === 401) return { ok: false, redirect: "/403" };
     return {
       ok: false,
-      redirect: `/feilmelding?grunn=${errors.TEKNISK_FEIL.grunn}`,
+      redirect: "/feilmelding?grunn=teknisk-feil",
     };
   }
 
@@ -93,7 +92,7 @@ export async function hentFritakagpDokument(token, dokumentType, dokumentId) {
     );
     return {
       ok: false,
-      redirect: `/feilmelding?grunn=${errors.TEKNISK_FEIL.grunn}`,
+      redirect: "/feilmelding?grunn=teknisk-feil",
     };
   }
 

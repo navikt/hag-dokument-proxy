@@ -1,7 +1,6 @@
 import { requestOboToken } from "@navikt/oasis";
 import { logger } from "@navikt/pino-logger";
 import { validate } from "uuid";
-import errors from "./errors.js";
 
 const API_BASEPATH = process.env.API_BASEPATH || "";
 const AUDIENCE = process.env.AUDIENCE || "";
@@ -26,7 +25,7 @@ export async function hentSykepengerDokument(token, dokumentType, dokumentId) {
     logger.error(`Feil ved henting av OBO-token med audience ${AUDIENCE}`);
     return {
       ok: false,
-      redirect: `/feilmelding?grunn=${errors.TEKNISK_FEIL.grunn}`,
+      redirect: "/feilmelding?grunn=teknisk-feil",
     };
   }
 
@@ -47,7 +46,7 @@ export async function hentSykepengerDokument(token, dokumentType, dokumentId) {
     if (data.status === 401) return { ok: false, redirect: "/403" };
     return {
       ok: false,
-      redirect: `/feilmelding?grunn=${errors.TEKNISK_FEIL.grunn}`,
+      redirect: "/feilmelding?grunn=teknisk-feil",
     };
   }
 
