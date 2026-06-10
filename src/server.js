@@ -68,6 +68,9 @@ app.use(`${BASE_PATH}/assets`, express.static("dist/assets"));
 app.use(`${BASE_PATH}/feilmelding`, (_req, res) =>
   renderDecoratedPage(res, "dist/feilmelding/index.html"),
 );
+app.use(`${BASE_PATH}/sesjonfeil`, (_req, res) =>
+  renderDecoratedPage(res, "dist/sesjonfeil/index.html"),
+);
 app.use(`${BASE_PATH}/404`, (_req, res) =>
   renderDecoratedPage(res, "dist/404/index.html", 404),
 );
@@ -87,13 +90,13 @@ app.get(`${BASE_PATH}/:dokumentType/:dokumentId.pdf`, async (req, res) => {
 
   const token = getToken(req);
   if (!token) {
-    return res.redirect(`${BASE_PATH}/feilmelding?grunn=sesjon-feil`);
+    return res.redirect(`${BASE_PATH}/sesjonfeil`);
   }
 
   const validation = await validateToken(token);
   if (!validation.ok) {
     logger.error("Ugyldig token");
-    return res.redirect(`${BASE_PATH}/feilmelding?grunn=sesjon-feil`);
+    return res.redirect(`${BASE_PATH}/sesjonfeil`);
   }
 
   let result;

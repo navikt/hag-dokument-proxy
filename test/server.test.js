@@ -154,17 +154,13 @@ describe("Server", () => {
     it("skal redirecte til /feilmelding når token mangler", async () => {
       vi.mocked(getToken).mockReturnValueOnce(null);
       const response = await request(app).get(SYKMELDING_PATH).expect(302);
-      expect(response.headers.location).toBe(
-        "/dokument/feilmelding?grunn=sesjon-feil",
-      );
+      expect(response.headers.location).toBe("/dokument/sesjonfeil");
     });
 
     it("skal redirecte til /feilmelding når token er ugyldig", async () => {
       vi.mocked(validateToken).mockResolvedValueOnce({ ok: false });
       const response = await request(app).get(SYKMELDING_PATH).expect(302);
-      expect(response.headers.location).toBe(
-        "/dokument/feilmelding?grunn=sesjon-feil",
-      );
+      expect(response.headers.location).toBe("/dokument/sesjonfeil");
     });
 
     it("skal redirecte til /feilmelding når OBO-token feiler", async () => {
