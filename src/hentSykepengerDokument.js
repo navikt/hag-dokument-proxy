@@ -25,7 +25,7 @@ export async function hentSykepengerDokument(token, dokumentType, dokumentId) {
     logger.error(`Feil ved henting av OBO-token med audience ${AUDIENCE}`);
     return {
       ok: false,
-      redirect: "/feilmelding?grunn=teknisk-feil",
+      redirect: "/feilmelding",
     };
   }
 
@@ -46,7 +46,7 @@ export async function hentSykepengerDokument(token, dokumentType, dokumentId) {
     if (data.status === 401) return { ok: false, redirect: "/403" };
     return {
       ok: false,
-      redirect: "/feilmelding?grunn=teknisk-feil",
+      redirect: "/feilmelding",
     };
   }
 

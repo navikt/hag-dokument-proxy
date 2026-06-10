@@ -170,9 +170,7 @@ describe("Server", () => {
     it("skal redirecte til /feilmelding når OBO-token feiler", async () => {
       vi.mocked(requestOboToken).mockResolvedValueOnce({ ok: false });
       const response = await request(app).get(SYKMELDING_PATH).expect(302);
-      expect(response.headers.location).toBe(
-        "/dokument/feilmelding?grunn=teknisk-feil",
-      );
+      expect(response.headers.location).toBe("/dokument/feilmelding");
     });
 
     it("skal redirecte til /ugyldig når dokumentType er ugyldig", async () => {
@@ -204,9 +202,7 @@ describe("Server", () => {
     it("skal redirecte til /feilmelding ved annen upstream-feil", async () => {
       mockFetch({ ok: false, status: 500 });
       const response = await request(app).get(SYKMELDING_PATH).expect(302);
-      expect(response.headers.location).toBe(
-        "/dokument/feilmelding?grunn=teknisk-feil",
-      );
+      expect(response.headers.location).toBe("/dokument/feilmelding");
     });
   });
 
@@ -266,17 +262,13 @@ describe("Server", () => {
           .mockReturnValueOnce(mockPdfResponse({ ok: false, status: 500 })),
       );
       const response = await request(app).get(KRONISK_SOKNAD_PATH).expect(302);
-      expect(response.headers.location).toBe(
-        "/dokument/feilmelding?grunn=teknisk-feil",
-      );
+      expect(response.headers.location).toBe("/dokument/feilmelding");
     });
 
     it("skal redirecte til /feilmelding når OBO-token for fritakagp feiler", async () => {
       vi.mocked(requestOboToken).mockResolvedValueOnce({ ok: false });
       const response = await request(app).get(KRONISK_KRAV_PATH).expect(302);
-      expect(response.headers.location).toBe(
-        "/dokument/feilmelding?grunn=teknisk-feil",
-      );
+      expect(response.headers.location).toBe("/dokument/feilmelding");
     });
 
     it("skal videresende Content-Length fra pdfgen", async () => {

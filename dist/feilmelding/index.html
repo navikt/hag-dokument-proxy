@@ -12,16 +12,12 @@
       <p id="beskrivelse">Det har oppstått en feil. Prøv igjen om litt.</p>
     </div>
     <script>
-      const beskrivelser = {
-        "sesjon-feil":
-          "Det oppstod et problem med innloggingen din. Last siden på nytt og prøv igjen.",
-        "teknisk-feil":
-          "Det har oppstått en teknisk feil på vår side. Prøv igjen om litt.",
-      };
-      const grunn = new URLSearchParams(window.location.search).get("grunn");
-      const beskrivelse = beskrivelser[grunn];
-      if (beskrivelse)
-        document.getElementById("beskrivelse").textContent = beskrivelse;
+      if (
+        new URLSearchParams(window.location.search).get("grunn") ===
+        "sesjon-feil"
+      )
+        document.getElementById("beskrivelse").textContent =
+          "Det oppstod et problem med innloggingen din. Last siden på nytt og prøv igjen.";
     </script>
   </body>
 </html>

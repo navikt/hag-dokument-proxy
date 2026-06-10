@@ -55,7 +55,7 @@ export async function hentFritakagpDokument(token, dokumentType, dokumentId) {
     );
     return {
       ok: false,
-      redirect: "/feilmelding?grunn=teknisk-feil",
+      redirect: "/feilmelding",
     };
   }
 
@@ -78,7 +78,7 @@ export async function hentFritakagpDokument(token, dokumentType, dokumentId) {
     if (jsonResponse.status === 401) return { ok: false, redirect: "/403" };
     return {
       ok: false,
-      redirect: "/feilmelding?grunn=teknisk-feil",
+      redirect: "/feilmelding",
     };
   }
 
@@ -92,7 +92,7 @@ export async function hentFritakagpDokument(token, dokumentType, dokumentId) {
     );
     return {
       ok: false,
-      redirect: "/feilmelding?grunn=teknisk-feil",
+      redirect: "/feilmelding",
     };
   }
 
