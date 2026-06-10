@@ -53,10 +53,7 @@ export async function hentFritakagpDokument(token, dokumentType, dokumentId) {
     logger.error(
       `Feil ved henting av OBO-token med audience ${FRITAKAGP_AUDIENCE}: ${obo.error}`,
     );
-    return {
-      ok: false,
-      redirect: "/feilmelding",
-    };
+    return { ok: false, redirect: "/feilmelding" };
   }
 
   const fritakagpUrl = `${FRITAKAGP_API_BASEPATH}${config.apiPath}/${encodeURIComponent(dokumentId)}`;
@@ -76,10 +73,7 @@ export async function hentFritakagpDokument(token, dokumentType, dokumentId) {
     if (jsonResponse.status === 404) return { ok: false, redirect: "/404" };
     if (jsonResponse.status === 403) return { ok: false, redirect: "/403" };
     if (jsonResponse.status === 401) return { ok: false, redirect: "/403" };
-    return {
-      ok: false,
-      redirect: "/feilmelding",
-    };
+    return { ok: false, redirect: "/feilmelding" };
   }
 
   const jsonData = await jsonResponse.json();
@@ -90,10 +84,7 @@ export async function hentFritakagpDokument(token, dokumentType, dokumentId) {
     logger.error(
       `Feil ved henting av PDF fra pdfgen for ${dokumentType} med ID ${dokumentId}: ${pdfResponse.status} ${pdfResponse.statusText}`,
     );
-    return {
-      ok: false,
-      redirect: "/feilmelding",
-    };
+    return { ok: false, redirect: "/feilmelding" };
   }
 
   return { ok: true, data: pdfResponse };
