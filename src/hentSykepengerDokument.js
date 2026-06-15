@@ -32,7 +32,7 @@ export async function hentSykepengerDokument(token, dokumentType, dokumentId) {
   const data = await fetch(`${API_BASEPATH}/${path}/${dokumentId}/pdf`, {
     method: "GET",
     headers: {
-      Accept: "application/pdf",
+      Accept: "application/pdf, application/json",
       Authorization: `Bearer ${obo.token}`,
     },
   });
