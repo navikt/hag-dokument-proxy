@@ -84,6 +84,9 @@ app.use(`${BASE_PATH}/ugyldig`, (_req, res) =>
 app.get(`${BASE_PATH}/:dokumentType/:dokumentId.pdf`, async (req, res) => {
   const { dokumentId, dokumentType } = req.params;
 
+  const prodUrl = req.get("host").replace("ekstern.dev.", "");
+  res.redirect(301, `https://${prodUrl}${req.originalUrl}`);
+
   if (!dokumentId || !validate(dokumentId)) {
     return res.redirect(`${BASE_PATH}/ugyldig`);
   }
