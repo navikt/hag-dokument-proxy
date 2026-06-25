@@ -84,6 +84,10 @@ app.use(`${BASE_PATH}/ugyldig`, (_req, res) =>
 app.get(`${BASE_PATH}/:dokumentType/:dokumentId.pdf`, async (req, res) => {
   const { dokumentId, dokumentType } = req.params;
 
+  logger.info(
+    `Midlertidlig redirect av dev url til prod: ${dokumentType}-${dokumentId}.pdf`,
+  );
+
   const prodUrl = req.get("host").replace("ekstern.dev.", "");
   res.redirect(301, `https://${prodUrl}${req.originalUrl}`);
 
