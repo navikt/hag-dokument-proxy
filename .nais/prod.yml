@@ -31,6 +31,8 @@ spec:
           namespace: helsearbeidsgiver
         - application: helsearbeidsgiver-pdfgen
           namespace: helsearbeidsgiver
+        - application: dialog
+          namespace: helsearbeidsgiver
   resources:
     limits:
       memory: 256Mi
@@ -55,3 +57,9 @@ spec:
         value: 'http://fritakagp/fritak-agp-api'
       - name: PDFGEN_BASEPATH
         value: 'http://helsearbeidsgiver-pdfgen'
+      - name: DIALOG_FCE_BASEPATH
+        value: 'http://dialog'
+      - name: DIALOGPORTEN_ISSUER
+        value: 'https://platform.altinn.no/dialogporten/api/v1'
+      - name: DIALOGPORTEN_JWKS_URI
+        value: 'https://platform.altinn.no/dialogporten/api/v1/.well-known/jwks.json'
