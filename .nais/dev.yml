@@ -26,6 +26,8 @@ spec:
     max: 1
   accessPolicy:
     outbound:
+      external:
+        - host: platform.tt02.altinn.no
       rules:
         - application: nav-dekoratoren
           namespace: personbruker
@@ -37,6 +39,7 @@ spec:
           namespace: helsearbeidsgiver
         - application: dialog
           namespace: helsearbeidsgiver
+      
   resources:
     limits:
       memory: 256Mi

@@ -12,6 +12,8 @@ spec:
     sidecar:
       enabled: true
       autoLogin: true
+      autoLoginIgnorePaths:
+        - /dokument/fce/sett-transmission-lest
   tokenx:
     enabled: true
   ingresses: [
@@ -22,6 +24,8 @@ spec:
     max: 1
   accessPolicy:
     outbound:
+      external:
+        - host: platform.altinn.no
       rules:
         - application: nav-dekoratoren
           namespace: personbruker
