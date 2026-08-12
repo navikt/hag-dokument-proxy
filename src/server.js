@@ -83,6 +83,42 @@ app.use(`${BASE_PATH}/ugyldig`, (_req, res) =>
   renderDecoratedPage(res, "dist/ugyldig/index.html", 400),
 );
 
+app.options(`${BASE_PATH}/fce/sett-transmission-lest`, (_req, res) => {
+  setFceCorsHeaders(res);
+  res.status(204).end();
+});
+
+app.get(`${BASE_PATH}/fce/sett-transmission-lest`, (req, res) => {
+  setFceCorsHeaders(res);
+
+  // Svarer med tom string umiddelbart
+  // Unngår støy med frontend loading og unødvendig feilmelding ved timeout/intern feil
+  res.status(200).send("");
+
+  const token = getToken(req.headers.authorization);
+  if (!token) {
+    logger.error(
+      `FCE-forespørsel mottatt uten dialogtoken for dialog:${dialogId}`,
+    );
+    return;
+  }
+
+  const { dialogId, transmissionId } = req.query;
+  if (!dialogId || !validate(dialogId)) {
+    logger.error(`FCE-forespørsel mottatt med ugyldig dialogId:${dialogId} `);
+    return;
+  }
+
+  if (!transmissionId || !validate(transmissionId)) {
+    logger.error(
+      `FCE-forespørsel mottatt med ugyldig transmissionId:${transmissionId}`,
+    );
+    return;
+  }
+
+  settTransmissionLest(token, dialogId, transmissionId);
+});
+
 app.get(`${BASE_PATH}/:dokumentType/:dokumentId.pdf`, async (req, res) => {
   const { dokumentId, dokumentType } = req.params;
 
@@ -131,42 +167,6 @@ app.get(`${BASE_PATH}/:dokumentType/:dokumentId.pdf`, async (req, res) => {
   }
 
   Readable.fromWeb(data.body).pipe(res);
-});
-
-app.options(`${BASE_PATH}/fce/sett-transmission-lest`, (_req, res) => {
-  setFceCorsHeaders(res);
-  res.status(204).end();
-});
-
-app.get(`${BASE_PATH}/fce/sett-transmission-lest`, (req, res) => {
-  setFceCorsHeaders(res);
-
-  // Svarer med tom string umiddelbart
-  // Unngår støy med frontend loading og unødvendig feilmelding ved timeout/intern feil
-  res.status(200).send("");
-
-  const token = getToken(req.headers.authorization);
-  if (!token) {
-    logger.error(
-      `FCE-forespørsel mottatt uten dialogtoken for dialog:${dialogId}`,
-    );
-    return;
-  }
-
-  const { dialogId, transmissionId } = req.query;
-  if (!dialogId || !validate(dialogId)) {
-    logger.error(`FCE-forespørsel mottatt med ugyldig dialogId:${dialogId} `);
-    return;
-  }
-
-  if (!transmissionId || !validate(transmissionId)) {
-    logger.error(
-      `FCE-forespørsel mottatt med ugyldig transmissionId:${transmissionId}`,
-    );
-    return;
-  }
-
-  settTransmissionLest(token, dialogId, transmissionId);
 });
 
 app.use((req, _res, next) => {
