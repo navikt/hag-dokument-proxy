@@ -43,14 +43,14 @@ export default async function settTransmissionLest(
   }
 }
 
-const FCE_ALLOWED_HEADERS = [
-  "Accept-Language",
-  "Prefer",
-  "Authorization",
-  "Content-Type",
-].join(", ");
+// const FCE_ALLOWED_HEADERS = [
+//   "Accept-Language",
+//   "Prefer",
+//   "Authorization",
+//   "Content-Type",
+// ].join(", ");
 
 export function setFceCorsHeaders(res) {
   res.setHeader("Access-Control-Allow-Origin", "*");
-  res.setHeader("Access-Control-Allow-Headers", FCE_ALLOWED_HEADERS);
+  res.setHeader("Access-Control-Allow-Headers", "*");
 }
