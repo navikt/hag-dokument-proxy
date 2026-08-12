@@ -12,6 +12,8 @@ spec:
     sidecar:
       enabled: true
       autoLogin: true
+      autoLoginIgnorePaths:
+        - /dokument/fce/sett-transmission-lest
   tokenx:
     enabled: true
   ingresses: [
