@@ -1,8 +1,6 @@
 import { vi } from "vitest";
 
-// Felles mocks som gjenbrukes av flere testfiler. Importeres som
-// side-effect-import (`import "./mocks.js"`) før modulene som skal
-// mockes importeres, slik at vi.mock rekker å registrere mocken.
+// Felles mocks som gjenbrukes av flere testfiler (må importeres før oasis)
 
 vi.mock("@navikt/nav-dekoratoren-moduler/ssr/index.js", () => ({
   buildCspHeader: vi.fn(() => ""),
