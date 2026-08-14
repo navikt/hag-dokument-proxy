@@ -95,7 +95,9 @@ app.get(`${BASE_PATH}/fce/sett-transmission-lest`, (req, res) => {
   // Unngår støy med frontend loading og unødvendig feilmelding ved timeout/intern feil
   res.status(200).send("");
 
+  const { dialogId, transmissionId } = req.query;
   const token = getToken(req.headers.authorization);
+
   if (!token) {
     logger.error(
       `FCE-forespørsel mottatt uten dialogtoken for dialog:${dialogId}`,
@@ -103,7 +105,6 @@ app.get(`${BASE_PATH}/fce/sett-transmission-lest`, (req, res) => {
     return;
   }
 
-  const { dialogId, transmissionId } = req.query;
   if (!dialogId || !validate(dialogId)) {
     logger.error(`FCE-forespørsel mottatt med ugyldig dialogId:${dialogId} `);
     return;
