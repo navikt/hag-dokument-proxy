@@ -30,7 +30,7 @@ export async function validerDialogToken(token) {
     });
     return { ok: true, payload };
   } catch (error) {
-    logger.error(`Feil ved verifisering av dialogtoken: ${error}`);
-    return { ok: false, error };
+    logger.error(`Feil ved verifisering av dialogtoken: ${error.message}`);
+    return { ok: false, error: "Noe gikk galt" };
   }
 }

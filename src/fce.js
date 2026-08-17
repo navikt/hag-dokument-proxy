@@ -38,7 +38,7 @@ export default async function settTransmissionLest(
     logger.info(`Kalte dialog-appen for å sette transmission lest: ${url}`);
   } catch (error) {
     logger.error(
-      `Feil ved kall til dialog-appen for å sette transmission lest (${url}): ${error}`,
+      `Feil ved kall til dialog-appen for å sette transmission lest (${url}): ${error.message}`,
     );
   }
 }
