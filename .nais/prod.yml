@@ -12,6 +12,8 @@ spec:
     sidecar:
       enabled: true
       autoLogin: true
+      autoLoginIgnorePaths:
+        - /dokument/fce/sett-transmission-lest
   tokenx:
     enabled: true
   ingresses: [
@@ -22,6 +24,8 @@ spec:
     max: 1
   accessPolicy:
     outbound:
+      external:
+        - host: platform.altinn.no
       rules:
         - application: nav-dekoratoren
           namespace: personbruker
@@ -30,6 +34,8 @@ spec:
         - application: fritakagp
           namespace: helsearbeidsgiver
         - application: helsearbeidsgiver-pdfgen
+          namespace: helsearbeidsgiver
+        - application: dialog
           namespace: helsearbeidsgiver
   resources:
     limits:
@@ -55,3 +61,9 @@ spec:
         value: 'http://fritakagp/fritak-agp-api'
       - name: PDFGEN_BASEPATH
         value: 'http://helsearbeidsgiver-pdfgen'
+      - name: DIALOG_FCE_BASEPATH
+        value: 'http://dialog'
+      - name: DIALOGPORTEN_ISSUER
+        value: 'https://platform.altinn.no/dialogporten/api/v1'
+      - name: DIALOGPORTEN_JWKS_URI
+        value: 'https://platform.altinn.no/dialogporten/api/v1/.well-known/jwks.json'

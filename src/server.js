@@ -4,6 +4,7 @@ import { fileURLToPath } from "node:url";
 import { Readable } from "node:stream";
 import { logger } from "@navikt/pino-logger";
 import { validate } from "uuid";
+
 import {
   hentSykepengerDokument,
   isSykepengerType,
@@ -12,6 +13,7 @@ import {
   hentFritakagpDokument,
   isFritakagpType,
 } from "./hentFritakagpDokument.js";
+import settTransmissionLest, { setFceCorsHeaders } from "./fce.js";
 
 const app = express();
 app.disable("x-powered-by");
@@ -80,6 +82,43 @@ app.use(`${BASE_PATH}/403`, (_req, res) =>
 app.use(`${BASE_PATH}/ugyldig`, (_req, res) =>
   renderDecoratedPage(res, "dist/ugyldig/index.html", 400),
 );
+
+app.options(`${BASE_PATH}/fce/sett-transmission-lest`, (_req, res) => {
+  setFceCorsHeaders(res);
+  res.status(204).end();
+});
+
+app.get(`${BASE_PATH}/fce/sett-transmission-lest`, (req, res) => {
+  setFceCorsHeaders(res);
+
+  // Svarer med tom string umiddelbart
+  // Unngår støy med frontend loading og unødvendig feilmelding ved timeout/intern feil
+  res.status(200).send("");
+
+  const { dialogId, transmissionId } = req.query;
+  const token = getToken(req.headers.authorization);
+
+  if (!token) {
+    logger.error(
+      `FCE-forespørsel mottatt uten dialogtoken for dialog:${dialogId}`,
+    );
+    return;
+  }
+
+  if (!dialogId || !validate(dialogId)) {
+    logger.error(`FCE-forespørsel mottatt med ugyldig dialogId:${dialogId} `);
+    return;
+  }
+
+  if (!transmissionId || !validate(transmissionId)) {
+    logger.error(
+      `FCE-forespørsel mottatt med ugyldig transmissionId:${transmissionId}`,
+    );
+    return;
+  }
+
+  settTransmissionLest(token, dialogId, transmissionId);
+});
 
 app.get(`${BASE_PATH}/:dokumentType/:dokumentId.pdf`, async (req, res) => {
   const { dokumentId, dokumentType } = req.params;

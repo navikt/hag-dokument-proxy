@@ -1,30 +1,11 @@
 import { describe, it, expect, vi, beforeEach } from "vitest";
 import { Readable } from "node:stream";
 import request from "supertest";
+import "./mocks.js";
 import { getToken, validateToken, requestOboToken } from "@navikt/oasis";
 import * as decoratorModule from "@navikt/nav-dekoratoren-moduler/ssr/index.js";
 
-vi.mock("@navikt/nav-dekoratoren-moduler/ssr/index.js", () => ({
-  buildCspHeader: vi.fn(() => ""),
-  injectDecoratorServerSide: vi.fn(() => Promise.resolve("<html></html>")),
-}));
-
-vi.mock("@navikt/pino-logger", () => ({
-  logger: {
-    error: vi.fn(),
-    info: vi.fn(),
-  },
-}));
-
 const { default: app } = await import("../src/server.js");
-
-vi.mock("@navikt/oasis", () => ({
-  getToken: vi.fn(() => "mock-token"),
-  validateToken: vi.fn(() => Promise.resolve({ ok: true })),
-  requestOboToken: vi.fn(() =>
-    Promise.resolve({ ok: true, token: "obo-token" }),
-  ),
-}));
 
 const SYKMELDING_PATH =
   "/dokument/sykmelding/550e8400-e29b-41d4-a716-446655440000.pdf";
