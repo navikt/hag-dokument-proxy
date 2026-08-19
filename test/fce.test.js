@@ -116,12 +116,13 @@ describe("FCE-endepunkt", () => {
     );
 
     expect(fetch).toHaveBeenCalledTimes(1);
-    const [calledUrl] = vi.mocked(fetch).mock.calls[0];
+    const [calledUrl, init] = vi.mocked(fetch).mock.calls[0];
     const url = new URL(calledUrl);
     expect(url.hostname).toBe("dialog");
-    expect(url.pathname).toBe("/sett-transmission-lest");
+    expect(url.pathname).toBe("/transmission-lest");
     expect(url.searchParams.get("dialogId")).toBe(DIALOG_ID);
     expect(url.searchParams.get("transmissionId")).toBe(TRANSMISSION_ID);
+    expect(init.method).toBe("PUT");
   });
 
   it("skal ikke kalle dialog-appen når dialogtoken mangler", async () => {

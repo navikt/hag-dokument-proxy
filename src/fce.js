@@ -23,12 +23,12 @@ export default async function settTransmissionLest(
     return;
   }
 
-  const url = new URL(`${DIALOG_FCE_BASEPATH}/sett-transmission-lest`);
+  const url = new URL(`${DIALOG_FCE_BASEPATH}/transmission-lest`);
   url.searchParams.set("dialogId", dialogId);
   url.searchParams.set("transmissionId", transmissionId);
 
   try {
-    const response = await fetch(url, { method: "GET" });
+    const response = await fetch(url, { method: "PUT" });
     if (!response.ok) {
       logger.error(
         `Feil ved kall til dialog-appen for å sette transmission lest (${url}): ${response.status} ${response.statusText}`,
