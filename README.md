@@ -16,7 +16,7 @@ For å gi en oversikt er det inkludert sekvens diagram for å vise hvordan syste
 
 Brukeren åpner dialogen og klikker på lenken. fritakagp returnerer kun en JSON-versjon av dataene, og proxyen gjør deretter et kall til pdfgen for å konvertere JSON til PDF:
 
-Dette er den enkleste/foretrukket måten å implementere nye PDF endepunkt da appen med data (fritakAGP) ikke trenger å forholde seg til pdfgen. 
+Dette er den enkleste/foretrukket måten å implementere nye PDF endepunkt da appen med data (fritakAGP) ikke trenger å forholde seg til pdfgen.
 
 ```mermaid
 sequenceDiagram
@@ -37,8 +37,6 @@ sequenceDiagram
     Pdfgen-->>Proxy: Returner PDF
     Proxy-->>User: Returner PDF
 ```
-
-
 
 ## Sykepenger PDF fra LPS API
 
@@ -64,4 +62,3 @@ sequenceDiagram
     LPS-->>Proxy: Returner PDF
     Proxy-->>User: Returner PDF
 ```
-
