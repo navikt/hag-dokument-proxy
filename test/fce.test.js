@@ -17,7 +17,7 @@ const { default: app } = await import("../src/server.js");
 
 const DIALOG_ID = "e0300961-85fb-4ef2-abff-681d77f9960e";
 const TRANSMISSION_ID = "550e8400-e29b-41d4-a716-446655440000";
-const FCE_PATH = `/dokument/fce/sett-transmission-lest?dialogId=${DIALOG_ID}&transmissionId=${TRANSMISSION_ID}`;
+const FCE_PATH = `/dokument/fce/sett-transmission-lest?transmissionId=${TRANSMISSION_ID}`;
 const AUTH_HEADER = "Bearer mock-dialog-token";
 
 function mockDialogTokenPayload(overrides = {}) {
@@ -145,8 +145,8 @@ describe("FCE-endepunkt", () => {
     expect(fetch).not.toHaveBeenCalled();
   });
 
-  it("skal ikke kalle dialog-appen når dialogId i URL ikke samsvarer med dialogtoken", async () => {
-    mockDialogTokenPayload({ i: "annen-dialog-id" });
+  it("skal ikke kalle dialog-appen når dialogId i dialogtoken ikke er gyldig", async () => {
+    mockDialogTokenPayload({ i: "ikke-gyldig-uuid-dialog-id" });
     await request(app)
       .get(FCE_PATH)
       .set("Authorization", AUTH_HEADER)

@@ -95,18 +95,13 @@ app.get(`${BASE_PATH}/fce/sett-transmission-lest`, (req, res) => {
   // Unngår støy med frontend loading og unødvendig feilmelding ved timeout/intern feil
   res.status(200).send("");
 
-  const { dialogId, transmissionId } = req.query;
+  const { transmissionId } = req.query;
   const token = getToken(req.headers.authorization);
 
   if (!token) {
     logger.error(
-      `FCE-forespørsel mottatt uten dialogtoken for dialog:${dialogId}`,
+      `FCE-forespørsel mottatt uten dialogtoken for transmission ${transmissionId}`,
     );
-    return;
-  }
-
-  if (!dialogId || !validate(dialogId)) {
-    logger.error(`FCE-forespørsel mottatt med ugyldig dialogId:${dialogId} `);
     return;
   }
 
@@ -117,7 +112,7 @@ app.get(`${BASE_PATH}/fce/sett-transmission-lest`, (req, res) => {
     return;
   }
 
-  settTransmissionLest(token, dialogId, transmissionId);
+  settTransmissionLest(token, transmissionId);
 });
 
 app.get(`${BASE_PATH}/:dokumentType/:dokumentId.pdf`, async (req, res) => {
