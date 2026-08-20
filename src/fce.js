@@ -1,24 +1,21 @@
 import { logger } from "@navikt/pino-logger";
 import { validerDialogToken } from "./dialogToken.js";
+import { validate } from "uuid";
 
 const DIALOG_FCE_BASEPATH = process.env.DIALOG_FCE_BASEPATH || "";
 
-export default async function settTransmissionLest(
-  token,
-  dialogId,
-  transmissionId,
-) {
+export default async function settTransmissionLest(token, transmissionId) {
   const validation = await validerDialogToken(token);
   if (!validation.ok) {
-    logger.error(`Ugyldig dialogtoken for dialog:${dialogId}`);
+    logger.error(`Ugyldig dialogtoken for transmission ${transmissionId}`);
     return;
   }
 
   // henter ut dialogId fra token claim "i" ref: https://docs.altinn.studio/en/dialogporten/reference/authorization/dialog-tokens/
-  const tokenDialogId = validation.payload.i;
-  if (tokenDialogId !== dialogId) {
+  const dialogId = validation.payload.i;
+  if (!dialogId || !validate(dialogId)) {
     logger.error(
-      `dialogId mottatt (${dialogId}) samsvarer ikke med dialogId i dialogtoken (${tokenDialogId})`,
+      `FCE-forespørsel mottatt med ugyldig dialogId:${dialogId} i dialog token for transmission ${transmissionId}`,
     );
     return;
   }
