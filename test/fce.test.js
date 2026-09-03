@@ -81,6 +81,9 @@ describe("FCE-endepunkt", () => {
     expect(response.headers["access-control-allow-headers"]).toContain(
       "Authorization",
     );
+    expect(response.headers["access-control-allow-headers"]).toContain(
+      "Prefer",
+    );
     expect(response.headers["access-control-allow-methods"]).toContain(
       "OPTIONS",
     );
