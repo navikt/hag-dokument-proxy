@@ -11,6 +11,7 @@ const SYKMELDING_PATH =
   "/dokument/sykmelding/550e8400-e29b-41d4-a716-446655440000.pdf";
 const SOKNAD_PATH =
   "/dokument/sykepengesoeknad/550e8400-e29b-41d4-a716-446655440000.pdf";
+const VEDTAK_PATH = "/dokument/vedtak/550e8400-e29b-41d4-a716-446655440000.pdf";
 const GRAVID_SOKNAD_PATH =
   "/dokument/gravid-soeknad/550e8400-e29b-41d4-a716-446655440000.pdf";
 const GRAVID_KRAV_PATH =
@@ -115,6 +116,16 @@ describe("Server", () => {
       mockFetch();
       const response = await request(app).get(SOKNAD_PATH).expect(200);
       expect(response.headers["content-type"]).toContain("application/pdf");
+    });
+
+    it("skal returnere PDF ved gyldig vedtak-forespørsel", async () => {
+      mockFetch();
+      const response = await request(app).get(VEDTAK_PATH).expect(200);
+      expect(response.headers["content-type"]).toContain("application/pdf");
+      expect(fetch).toHaveBeenCalledWith(
+        `/vedtak/${DOKUMENT_ID}/pdf`,
+        expect.objectContaining({ method: "GET" }),
+      );
     });
 
     it("skal sette Content-Disposition med riktig filnavn", async () => {
