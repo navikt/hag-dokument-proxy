@@ -78,9 +78,9 @@ describe("FCE-endepunkt", () => {
       .set("Authorization", AUTH_HEADER)
       .expect(200);
     expect(response.headers["access-control-allow-origin"]).toBe("*");
-    expect(response.headers["access-control-allow-headers"]).toContain(
-      "Authorization",
-    );
+    const allowedHeaders = response.headers["access-control-allow-headers"];
+    expect(allowedHeaders).toContain("Authorization");
+    expect(allowedHeaders).toContain("Prefer");
     expect(response.headers["access-control-allow-methods"]).toContain(
       "OPTIONS",
     );
@@ -89,9 +89,9 @@ describe("FCE-endepunkt", () => {
   it("skal svare 204 med CORS-headere på preflight (OPTIONS)", async () => {
     const response = await request(app).options(FCE_PATH).expect(204);
     expect(response.headers["access-control-allow-origin"]).toBe("*");
-    expect(response.headers["access-control-allow-headers"]).toContain(
-      "Authorization",
-    );
+    const allowedHeaders = response.headers["access-control-allow-headers"];
+    expect(allowedHeaders).toContain("Authorization");
+    expect(allowedHeaders).toContain("Prefer");
     expect(response.headers["access-control-allow-methods"]).toContain(
       "OPTIONS",
     );
