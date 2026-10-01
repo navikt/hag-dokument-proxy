@@ -1,11 +1,11 @@
 {
   "dependencies": {
-    "@navikt/nav-dekoratoren-moduler": "^3.7.1",
-    "@navikt/oasis": "^4.1.4",
+    "@navikt/nav-dekoratoren-moduler": "^4.5.0",
+    "@navikt/oasis": "^4.2.2",
     "@navikt/pino-logger": "^4.5.1",
     "express": "^5.2.1",
-    "jose": "^6.2.8",
-    "uuid": "^13.0.0"
+    "jose": "^6.2.12",
+    "uuid": "^13.0.2"
   },
   "scripts": {
     "start": "node src/server.js",
@@ -19,15 +19,15 @@
   "devDependencies": {
     "@eslint/css": "^0.14.1",
     "@eslint/js": "^10.0.1",
-    "@vitest/coverage-v8": "4.0.18",
-    "eslint": "^10.0.2",
-    "globals": "^17.4.0",
+    "@vitest/coverage-v8": "4.1.11",
+    "eslint": "^10.11.0",
+    "globals": "^17.12.0",
     "husky": "^9.1.7",
-    "knip": "^5.85.0",
-    "lint-staged": "^16.2.7",
-    "prettier": "^3.8.1",
-    "supertest": "^7.2.2",
-    "vitest": "^4.0.18"
+    "knip": "^5.88.1",
+    "lint-staged": "^16.4.0",
+    "prettier": "^3.9.9",
+    "supertest": "^7.3.0",
+    "vitest": "^4.1.11"
   },
   "version": "0.0.1"
 }
