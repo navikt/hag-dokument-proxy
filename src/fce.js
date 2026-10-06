@@ -20,9 +20,17 @@ export default async function settTransmissionLest(token, transmissionId) {
     return;
   }
 
+  if (!validation.payload.c) {
+    logger.error(
+      `FCE-forespørsel mottatt uten claim 'c' i dialog token for transmission ${transmissionId}`,
+    );
+    return;
+  }
+
   const url = new URL(`${DIALOG_FCE_BASEPATH}/transmission-lest`);
   url.searchParams.set("dialogId", dialogId);
   url.searchParams.set("transmissionId", transmissionId);
+  url.searchParams.set("claim", validation.payload.c);
 
   try {
     const response = await fetch(url, { method: "PUT" });
