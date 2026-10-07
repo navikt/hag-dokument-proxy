@@ -19,10 +19,11 @@ const DIALOG_ID = "e0300961-85fb-4ef2-abff-681d77f9960e";
 const TRANSMISSION_ID = "550e8400-e29b-41d4-a716-446655440000";
 const FCE_PATH = `/dokument/fce/sett-transmission-lest?transmissionId=${TRANSMISSION_ID}`;
 const AUTH_HEADER = "Bearer mock-dialog-token";
+const CLAIM = "mock-claim";
 
 function mockDialogTokenPayload(overrides = {}) {
   vi.mocked(jwtVerify).mockResolvedValue({
-    payload: { i: DIALOG_ID, ...overrides },
+    payload: { i: DIALOG_ID, c: CLAIM, ...overrides },
   });
 }
 
@@ -122,6 +123,7 @@ describe("FCE-endepunkt", () => {
     expect(url.pathname).toBe("/transmission-lest");
     expect(url.searchParams.get("dialogId")).toBe(DIALOG_ID);
     expect(url.searchParams.get("transmissionId")).toBe(TRANSMISSION_ID);
+    expect(url.searchParams.get("claim")).toBe(CLAIM);
     expect(init.method).toBe("PUT");
   });
 
