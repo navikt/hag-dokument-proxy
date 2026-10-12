@@ -7,7 +7,7 @@ const AUDIENCE = process.env.AUDIENCE || "";
 const SYKEPENGER_PATHS = {
   sykmelding: "sykmelding",
   sykepengesoeknad: "sykepengesoeknad",
-  vedtak: "vedtak",
+  refusjon: "refusjon",
 };
 
 export function isSykepengerType(type) {
