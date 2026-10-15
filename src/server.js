@@ -47,7 +47,7 @@ async function renderDecoratedPage(res, filePath, statusCode = 200) {
     const { injectDecoratorServerSide, buildCspHeader } =
       await getDecoratorModule();
     const html = await injectDecoratorServerSide({ env, filePath, params });
-    const csp = buildCspHeader({}, { env, params });
+    const csp = await buildCspHeader({}, { env, params });
     res.setHeader("Content-Security-Policy", csp);
     res.status(statusCode).send(html);
   } catch (error) {

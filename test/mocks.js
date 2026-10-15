@@ -3,7 +3,7 @@ import { vi } from "vitest";
 // Felles mocks som gjenbrukes av flere testfiler (må importeres før oasis)
 
 vi.mock("@navikt/nav-dekoratoren-moduler/ssr/index.js", () => ({
-  buildCspHeader: vi.fn(() => ""),
+  buildCspHeader: vi.fn(() => Promise.resolve("default-src 'self'")),
   injectDecoratorServerSide: vi.fn(() => Promise.resolve("<html></html>")),
 }));
 
