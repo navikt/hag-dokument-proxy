@@ -161,10 +161,14 @@ describe("FCE-endepunkt", () => {
 
   it("skal logge feil ved URL-oppretting uten å avvise Promise-et", async () => {
     const { default: settTransmissionLest } = await import("../src/fce.js");
+    const OriginalURL = globalThis.URL;
     vi.stubGlobal(
       "URL",
-      vi.fn(function () {
-        throw new TypeError("Invalid URL");
+      vi.fn(function (url, base) {
+        if (url === "http://dialog/transmission-lest") {
+          throw new TypeError("Invalid URL");
+        }
+        return new OriginalURL(url, base);
       }),
     );
 
