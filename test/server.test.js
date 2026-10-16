@@ -284,6 +284,22 @@ describe("Server", () => {
       expect(res.setHeader).not.toHaveBeenCalled();
     });
 
+    it("skal injisere dekoratøren og sette CSP-header", async () => {
+      const response = await request(app)
+        .get("/dokument/feilmelding")
+        .expect(200);
+
+      expect(response.headers["content-security-policy"]).toBe(
+        "default-src 'self'",
+      );
+      expect(decoratorModule.injectDecoratorServerSide).toHaveBeenCalledWith(
+        expect.objectContaining({
+          filePath: "dist/feilmelding/index.html",
+          params: { context: "arbeidsgiver" },
+        }),
+      );
+    });
+
     it("skal returnere 404 for ukjente stier", async () => {
       const response = await request(app).get("/finnes-ikke");
       expect(response.status).toBe(404);
