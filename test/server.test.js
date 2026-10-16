@@ -269,6 +269,21 @@ describe("Server", () => {
   });
 
   describe("Feilsider", () => {
+    it("skal videresende feil uten å rendre når responsen allerede er sendt", async () => {
+      const error = new Error("Responsen er allerede sendt");
+      const res = { headersSent: true, status: vi.fn(), setHeader: vi.fn() };
+      const next = vi.fn();
+      const errorHandler = app.router.stack.find(
+        (layer) => layer.handle.length === 4,
+      ).handle;
+
+      await errorHandler(error, {}, res, next);
+
+      expect(next).toHaveBeenCalledExactlyOnceWith(error);
+      expect(res.status).not.toHaveBeenCalled();
+      expect(res.setHeader).not.toHaveBeenCalled();
+    });
+
     it("skal injisere dekoratøren og sette CSP-header", async () => {
       const response = await request(app)
         .get("/dokument/feilmelding")
