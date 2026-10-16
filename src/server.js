@@ -172,9 +172,11 @@ app.use((req, _res, next) => {
 
 app.use((_req, res) => renderDecoratedPage(res, "dist/404/index.html", 404));
 
-// eslint-disable-next-line no-unused-vars
-app.use(async (err, _req, res, _next) => {
+app.use(async (err, _req, res, next) => {
   logger.error("Server: Error 500", err);
+  if (res.headersSent) {
+    return next(err);
+  }
   await renderDecoratedPage(res, "dist/500/index.html", 500);
 });
 

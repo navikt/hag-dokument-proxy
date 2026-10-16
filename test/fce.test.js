@@ -2,6 +2,7 @@ import { describe, it, expect, vi, beforeEach } from "vitest";
 import request from "supertest";
 import "./mocks.js";
 import { getToken } from "@navikt/oasis";
+import { logger } from "@navikt/pino-logger";
 import { jwtVerify } from "jose";
 
 vi.mock("jose", () => ({
@@ -156,6 +157,25 @@ describe("FCE-endepunkt", () => {
     await flushBackgroundCall();
 
     expect(fetch).not.toHaveBeenCalled();
+  });
+
+  it("skal logge feil ved URL-oppretting uten å avvise Promise-et", async () => {
+    const { default: settTransmissionLest } = await import("../src/fce.js");
+    vi.stubGlobal(
+      "URL",
+      vi.fn(function () {
+        throw new TypeError("Invalid URL");
+      }),
+    );
+
+    await expect(
+      settTransmissionLest("mock-dialog-token", TRANSMISSION_ID),
+    ).resolves.toBeUndefined();
+
+    expect(fetch).not.toHaveBeenCalled();
+    expect(logger.error).toHaveBeenCalledWith(
+      expect.stringContaining("Invalid URL"),
+    );
   });
 
   it("skal ikke feile responsen selv om kallet til dialog-appen feiler", async () => {
