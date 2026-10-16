@@ -88,7 +88,7 @@ app.options(`${BASE_PATH}/fce/sett-transmission-lest`, (_req, res) => {
   res.status(204).end();
 });
 
-app.get(`${BASE_PATH}/fce/sett-transmission-lest`, (req, res) => {
+app.get(`${BASE_PATH}/fce/sett-transmission-lest`, async (req, res) => {
   setFceCorsHeaders(res);
 
   // Svarer med tom string umiddelbart
@@ -112,7 +112,7 @@ app.get(`${BASE_PATH}/fce/sett-transmission-lest`, (req, res) => {
     return;
   }
 
-  settTransmissionLest(token, transmissionId);
+  await settTransmissionLest(token, transmissionId);
 });
 
 app.get(`${BASE_PATH}/:dokumentType/:dokumentId.pdf`, async (req, res) => {
@@ -173,9 +173,9 @@ app.use((req, _res, next) => {
 app.use((_req, res) => renderDecoratedPage(res, "dist/404/index.html", 404));
 
 // eslint-disable-next-line no-unused-vars
-app.use((err, _req, res, _next) => {
+app.use(async (err, _req, res, _next) => {
   logger.error("Server: Error 500", err);
-  renderDecoratedPage(res, "dist/500/index.html", 500);
+  await renderDecoratedPage(res, "dist/500/index.html", 500);
 });
 
 // Start serveren bare hvis filen kjøres direkte (ikke under test)
