@@ -11,9 +11,8 @@ COPY test ./test
 RUN npm install -g --force --ignore-scripts "$(node -p "require('./package.json').packageManager.split('+')[0]")"
 
 RUN --mount=type=secret,id=NODE_AUTH_TOKEN \
-    printf '//npm.pkg.github.com/:_authToken=%s\n' "$(cat /run/secrets/NODE_AUTH_TOKEN)" > /root/.npmrc && \
-    pnpm install --frozen-lockfile --ignore-scripts && \
-    rm -f /root/.npmrc
+    env "npm_config_//npm.pkg.github.com/:_authToken=$(cat /run/secrets/NODE_AUTH_TOKEN)" \
+    pnpm install --frozen-lockfile --ignore-scripts
 
 RUN pnpm test --run && pnpm prune --prod --ignore-scripts
 

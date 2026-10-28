@@ -2,6 +2,8 @@ name: Produksjonssetting
 on:
   release:
     types: [released]
+  schedule:
+    - cron: "0 6 * * 1" # Mondays 07:00 Norwegian time (CET / UTC+1)
 env:
   NODE_AUTH_TOKEN: ${{ secrets.READER_TOKEN }}
 jobs:
