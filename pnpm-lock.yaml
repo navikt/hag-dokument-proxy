@@ -21,8 +21,8 @@ importers:
         specifier: ^5.3.0
         version: 5.3.0
       jose:
-        specifier: ^6.2.13
-        version: 6.2.13
+        specifier: ^6.2.14
+        version: 6.2.14
       uuid:
         specifier: ^14.0.3
         version: 14.0.3
@@ -122,8 +122,8 @@ packages:
       '@csstools/css-parser-algorithms': ^4.0.2
       '@csstools/css-tokenizer': ^4.0.2
 
-  '@csstools/css-color-parser@4.2.6':
-    resolution: {integrity: sha512-iiPQ3iRWwnJkeEn6RIu6SJPr7hYrLz6XZ9s/QZl+2/LI5KQVjpl2fdmDSZKuD4xP6GMmMPgHFFXg6k1Wkz0Trg==}
+  '@csstools/css-color-parser@4.2.7':
+    resolution: {integrity: sha512-zgm9yjQz5iJB4VL8RyVwd71TWB8Q89FSxt/NzXoWqPSkEBOVtn9L6vAPtSc9hpKfB0Awo/AL2VKFHjYetBLFHQ==}
     engines: {node: '>=20.19.0'}
     peerDependencies:
       '@csstools/css-parser-algorithms': ^4.0.2
@@ -135,8 +135,8 @@ packages:
     peerDependencies:
       '@csstools/css-tokenizer': ^4.0.2
 
-  '@csstools/css-syntax-patches-for-csstree@1.1.15':
-    resolution: {integrity: sha512-J0u7HkVl2nzSlhsiTOp4AmwcUQ3D+mGEEKfBy/7To5/y7F2OHwyLrXfrhR0SMgr4p5Lo+eaMVSeai24zUcBIxA==}
+  '@csstools/css-syntax-patches-for-csstree@1.1.16':
+    resolution: {integrity: sha512-LsDbJPP/B8cPasUJyTA5S99F7C4G93ngW8hUluXz8CFeOaaRnBPtBiIlvgcPYU0HmHNz8CXg+1vwFrIB4F6Dgw==}
     peerDependencies:
       css-tree: ^3.2.1
     peerDependenciesMeta:
@@ -1358,8 +1358,8 @@ packages:
     resolution: {integrity: sha512-AC/7JofJvZGrrneWNaEnJeOLUx+JlGt7tNa0wZiRPT4MY1wmfKjt2+6O2p2uz2+skll8OZZmJMNqeke7kKbNgQ==}
     hasBin: true
 
-  jose@6.2.13:
-    resolution: {integrity: sha512-7TIg10ZE1x82YediN+lcrPNvGMKge9yFHQD+Qho/b8y2adfugU3AsvvHfxV0fzyFllT6l9xCjf4RWY9g/Z9PJQ==}
+  jose@6.2.14:
+    resolution: {integrity: sha512-3JasLuki1NRLQvY4wCoC37KZk4qxoBx2k2aFqLxT84IezqW0bkJKnNtxnZj/Fu1xsQivoc/lytxaRHJoGLjJ1A==}
 
   js-cookie@3.0.8:
     resolution: {integrity: sha512-yeJd4aNAdYZQjaon2bpD/Gb0B/omw7HQOsynXXcOiWVCacbBcPlgn8S/d1X6blFSaHao7ozqtW7NZW19xpCtIw==}
@@ -1974,7 +1974,7 @@ snapshots:
     dependencies:
       '@asamuzakjp/generational-cache': 1.0.1
       '@csstools/css-calc': 3.4.3(@csstools/css-parser-algorithms@4.0.2(@csstools/css-tokenizer@4.0.2))(@csstools/css-tokenizer@4.0.2)
-      '@csstools/css-color-parser': 4.2.6(@csstools/css-parser-algorithms@4.0.2(@csstools/css-tokenizer@4.0.2))(@csstools/css-tokenizer@4.0.2)
+      '@csstools/css-color-parser': 4.2.7(@csstools/css-parser-algorithms@4.0.2(@csstools/css-tokenizer@4.0.2))(@csstools/css-tokenizer@4.0.2)
       '@csstools/css-parser-algorithms': 4.0.2(@csstools/css-tokenizer@4.0.2)
       '@csstools/css-tokenizer': 4.0.2
     optional: true
@@ -2035,7 +2035,7 @@ snapshots:
       '@csstools/css-tokenizer': 4.0.2
     optional: true
 
-  '@csstools/css-color-parser@4.2.6(@csstools/css-parser-algorithms@4.0.2(@csstools/css-tokenizer@4.0.2))(@csstools/css-tokenizer@4.0.2)':
+  '@csstools/css-color-parser@4.2.7(@csstools/css-parser-algorithms@4.0.2(@csstools/css-tokenizer@4.0.2))(@csstools/css-tokenizer@4.0.2)':
     dependencies:
       '@csstools/color-helpers': 6.1.2
       '@csstools/css-calc': 3.4.3(@csstools/css-parser-algorithms@4.0.2(@csstools/css-tokenizer@4.0.2))(@csstools/css-tokenizer@4.0.2)
@@ -2048,7 +2048,7 @@ snapshots:
       '@csstools/css-tokenizer': 4.0.2
     optional: true
 
-  '@csstools/css-syntax-patches-for-csstree@1.1.15(css-tree@3.2.1)':
+  '@csstools/css-syntax-patches-for-csstree@1.1.16(css-tree@3.2.1)':
     optionalDependencies:
       css-tree: 3.2.1
     optional: true
@@ -2258,7 +2258,7 @@ snapshots:
       '@navikt/texas': 4.2.2
       '@opentelemetry/api': 1.9.1
       '@prometheus-io/client': 0.16.1
-      jose: 6.2.13
+      jose: 6.2.14
 
   '@navikt/pino-logger@5.0.1(pino@10.3.1)':
     dependencies:
@@ -2656,7 +2656,7 @@ snapshots:
   cssstyle@6.2.0:
     dependencies:
       '@asamuzakjp/css-color': 5.1.11
-      '@csstools/css-syntax-patches-for-csstree': 1.1.15(css-tree@3.2.1)
+      '@csstools/css-syntax-patches-for-csstree': 1.1.16(css-tree@3.2.1)
       css-tree: 3.2.1
       lru-cache: 11.5.3
     optional: true
@@ -3086,7 +3086,7 @@ snapshots:
 
   jiti@2.7.0: {}
 
-  jose@6.2.13: {}
+  jose@6.2.14: {}
 
   js-cookie@3.0.8: {}
 
