@@ -15,7 +15,7 @@ jobs:
       - uses: actions/checkout@v7
       - name: Build and push image and SBOM to OCI registry
         if: steps.changed-files.outputs.changed != 'only-inputs'
-        uses: nais/docker-build-push@dd7421d5068057a020ca46ead966c26190c516b1
+        uses: nais/docker-build-push@ceabe305c64640175f133b7e59af6666b0a3c46c
         id: docker-build-push
         with:
           team: helsearbeidsgiver
