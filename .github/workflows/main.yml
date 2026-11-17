@@ -24,7 +24,7 @@ jobs:
           build_secrets: |
             NODE_AUTH_TOKEN=${{ secrets.READER_TOKEN }}
       - name: Deploy to Nais
-        uses: nais/deploy/actions/deploy@d003bddf74ce5b96fa3056ae60bd4b9b3bbc89ef
+        uses: nais/deploy/actions/deploy@b1a9a40dae937091497f8f29c5ea5334cc1c0643
         env:
           CLUSTER: dev-gcp
           RESOURCE: .nais/dev.yml
