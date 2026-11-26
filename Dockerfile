@@ -1,5 +1,5 @@
 # Build and test against the target Chainguard Node 24 version
-FROM europe-north1-docker.pkg.dev/cgr-nav/pull-through/nav.no/node:24-dev AS builder
+FROM europe-north1-docker.pkg.dev/cgr-nav/pull-through/nav.no/node:26-dev AS builder
 USER root
 WORKDIR /app
 
@@ -18,7 +18,7 @@ RUN --mount=type=secret,id=NODE_AUTH_TOKEN \
 RUN pnpm test --run && pnpm prune --prod --ignore-scripts
 
 # Production image
-FROM europe-north1-docker.pkg.dev/cgr-nav/pull-through/nav.no/node:24-slim AS runner
+FROM europe-north1-docker.pkg.dev/cgr-nav/pull-through/nav.no/node:26-slim AS runner
 WORKDIR /app
 
 ENV NODE_ENV=production
